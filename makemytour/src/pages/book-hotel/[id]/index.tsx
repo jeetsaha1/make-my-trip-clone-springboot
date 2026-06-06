@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import {
   Star,
@@ -42,30 +43,47 @@ const BookHotelPage = () => {
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
   const { id } = router.query; // Access the hotel ID from the URL
+  const hotelId = Array.isArray(id) ? id[0] : id;
   const [hotels, sethotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
   const user = useSelector((state: any) => state.user.user);
   const [open, setopem] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
+    if (!hotelId) return;
     const fetchhotels = async () => {
       try {
         const data = await gethotel();
-        const filteredData = data.filter((hotel: any) => hotel.id === id);
+        const filteredData = data.filter(
+          (hotel: any) => hotel.id?.toString() === hotelId?.toString()
+        );
         sethotels(filteredData);
       } catch (error) {
-        console.error("Error fetching flights:", error);
+        console.error("Error fetching hotels:", error);
       } finally {
         setLoading(false);
       }
     };
     fetchhotels();
-  }, []);
+  }, [hotelId]);
 
   if (loading) {
     return <Loader />;
   }
   const hotel = hotels[0];
+  if (!hotel) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
+        <div className="bg-white rounded-xl shadow-lg p-10 text-center">
+          <h1 className="text-2xl font-semibold mb-4">No hotel data available for this ID.</h1>
+          <p className="text-gray-600">Please return to the search page and try again.</p>
+          <Link href="/" className="mt-6 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Go back home
+          </Link>
+        </div>
+      </div>
+    );
+  }
   const hotelData = {
     name: "Magnum Resorts- Near Candolim Beach",
     rating: 3,
@@ -245,13 +263,13 @@ const BookHotelPage = () => {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center space-x-2 text-sm">
-            <a href="/" className="text-blue-500">
+            <Link href="/" className="text-blue-500">
               Home
-            </a>
+            </Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
-            <a href="/" className="text-blue-500">
+            <Link href="/" className="text-blue-500">
               {hotel?.location}
-            </a>
+            </Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
             <span className="text-gray-600">{hotel?.hotelName}</span>
           </div>

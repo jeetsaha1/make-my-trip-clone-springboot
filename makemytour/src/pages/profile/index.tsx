@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { clearUser, setUser } from "@/store";
 import { editprofile } from "@/api";
-const index = () => {
+const Profile = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
@@ -269,4 +269,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Profile;

@@ -20,7 +20,7 @@ const Footer = () => {
               Booking Flights with MakeMyTour
             </h3>
             <p className="text-sm leading-relaxed">
-              Book your flights tickets with India's leading flight booking
+              Book your flights tickets with India&apos;s leading flight booking
               company. Get best deals on flights, train tickets, buses, hotels
               and holiday packages.
             </p>
@@ -30,7 +30,7 @@ const Footer = () => {
               Domestic Flights with MakeMyTour
             </h3>
             <p className="text-sm leading-relaxed">
-              MakeMyTour is India's leading player for flight bookings. With the
+              MakeMyTour is India&apos;s leading player for flight bookings. With the
               cheapest fare guarantee, experience great value at the lowest
               price.
             </p>

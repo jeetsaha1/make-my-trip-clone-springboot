@@ -137,11 +137,12 @@ export default function Home() {
 
   const cityOptions = useMemo(() => {
     const cities = new Set<string>();
-    flight.forEach((flight) => {
+    (flight || []).forEach((flight) => {
       cities.add(flight.from);
       cities.add(flight.to);
     });
-    hotel.forEach((hotel) => {
+
+    (hotel || []).forEach((hotel) => {
       cities.add(hotel.location);
     });
     return Array.from(cities).map((city) => ({ value: city, label: city }));
@@ -183,6 +184,17 @@ export default function Home() {
       router.push(`/book-hotel/${id}`);
     }
   };
+
+  const handleOfferBook = (offerTitle: string) => {
+    if (offerTitle.toLowerCase().includes("flight")) {
+      router.push(`/book-flight/${flightD[0].id}`);
+    } else if (offerTitle.toLowerCase().includes("hotel")) {
+      router.push(`/book-hotel/${hotelData[0].id}`);
+    } else {
+      router.push(`/book-flight/${flightD[0].id}`);
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
@@ -344,7 +356,11 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-8 text-white">Best Offers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {offers.map((offer, index) => (
-                <OfferCard key={index} {...offer} />
+                <OfferCard
+                  key={index}
+                  {...offer}
+                  onClick={() => handleOfferBook(offer.title)}
+                />
               ))}
             </div>
           </section>
@@ -384,14 +400,17 @@ export default function Home() {
     </div>
   );
 }
-const OfferCard = ({ title, description, imageUrl }: any) => {
+const OfferCard = ({ title, description, imageUrl, onClick }: any) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <img src={imageUrl} alt={title} className="w-full h-48 object-cover" />
       <div className="p-4">
         <h3 className="font-semibold text-lg mb-2">{title}</h3>
         <p className="text-gray-600 text-sm">{description}</p>
-        <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        <button
+          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          onClick={onClick}
+        >
           Book Now
         </button>
       </div>
@@ -427,7 +446,7 @@ const DownloadApp = () => {
         <div className="mb-6 md:mb-0">
           <h3 className="text-xl font-bold mb-2">Download App Now!</h3>
           <p className="text-gray-600 mb-4">
-            Get India's #1 travel super app with best deals on flights
+            Get India&apos;s #1 travel super app with best deals on flights
           </p>
           <div className="flex space-x-4">
             <img

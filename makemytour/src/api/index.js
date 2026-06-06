@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BACKEND_URL = "your backend url";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export const login = async (email, password) => {
   try {
@@ -68,10 +68,10 @@ export const editprofile = async (
 export const getflight = async () => {
   try {
     const res = await axios.get(`${BACKEND_URL}/flight`);
-    const data = res.data;
-    return data;
+    return res.data;
   } catch (error) {
-    console.log(data);
+    console.error(error);
+    return [];
   }
 };
 
@@ -131,10 +131,10 @@ export const editflight = async (
 export const gethotel = async () => {
   try {
     const res = await axios.get(`${BACKEND_URL}/hotel`);
-    const data = res.data;
-    return data;
+    return res.data;
   } catch (error) {
-    console.log(data);
+    console.error(error);
+    return [];
   }
 };
 
@@ -196,7 +196,7 @@ export const handleflightbooking = async (userId, flightId, seats, price) => {
 
 export const handlehotelbooking = async (userId, hotelId, rooms, price) => {
   try {
-    const url = `${BACKEND_URL}/booking/flight?userId=${userId}&hotelId=${hotelId}&rooms=${rooms}&price=${price}`;
+    const url = `${BACKEND_URL}/booking/hotel?userId=${userId}&hotelId=${hotelId}&rooms=${rooms}&price=${price}`;
     const res = await axios.post(url);
     const data = res.data;
     return data;

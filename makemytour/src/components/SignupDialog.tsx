@@ -21,6 +21,7 @@ const SignupDialog = ({trigger}:any) => {
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [open, setopem] = useState(false);
+  const [authError, setAuthError] = useState("");
   const dispatch = useDispatch();
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +35,15 @@ const SignupDialog = ({trigger}:any) => {
           password
         );
         dispatch(setUser(signin));
-      } catch (error) {
-        console.log(error);
+        setAuthError("");
+        setopem(false);
+        clearform();
+      } catch (error: any) {
+        setAuthError(
+          error.response?.data?.message || error.response?.data ||
+            error.message ||
+            "Signup failed. Please try again."
+        );
       }
     } else {
       try {
@@ -43,8 +51,12 @@ const SignupDialog = ({trigger}:any) => {
         dispatch(setUser(data));
         setopem(false);
         clearform();
-      } catch (error) {
-        console.log(error);
+      } catch (error: any) {
+        setAuthError(
+          error.response?.data?.message || error.response?.data ||
+            error.message ||
+            "Login failed. Please try again."
+        );
       }
     }
   };
@@ -126,6 +138,11 @@ const SignupDialog = ({trigger}:any) => {
               />
             </div>
           )}
+          {authError && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+              {authError}
+            </div>
+          )}
           <Button
             type="submit"
             className="w-full bg-blue-600 text-white"
@@ -148,7 +165,7 @@ const SignupDialog = ({trigger}:any) => {
             </>
           ) : (
             <>
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Button
                 variant="link"
                 className="p-0 text-blue-600"

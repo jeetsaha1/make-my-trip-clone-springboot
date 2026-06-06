@@ -44,6 +44,7 @@ import { setUser } from "@/store";
 const BookFlightPage = () => {
   const router = useRouter();
   const { id } = router.query;
+  const flightId = Array.isArray(id) ? id[0] : id;
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -51,10 +52,13 @@ const BookFlightPage = () => {
   const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
   useEffect(() => {
+    if (!flightId) return;
     const fetchFlights = async () => {
       try {
         const data = await getflight();
-        const filteredData = data.filter((flight: any) => flight.id === id);
+        const filteredData = data.filter(
+          (flight: any) => flight.id?.toString() === flightId?.toString()
+        );
         setFlights(filteredData);
         console.log(filteredData);
       } catch (error) {
@@ -64,7 +68,7 @@ const BookFlightPage = () => {
       }
     };
     fetchFlights();
-  }, [id, user]);
+  }, [flightId]);
 
   if (loading) {
     return <Loader />;
