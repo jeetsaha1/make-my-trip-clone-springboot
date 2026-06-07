@@ -1,0 +1,20 @@
+0 verbose cli D:\nodejs\node.exe D:\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.13.0
+3 silly config load:file:D:\nodejs\node_modules\npm\npmrc
+4 silly config load:file:d:\VSCODE\make-my-trip-clone-springboot\makemytour\.npmrc
+5 silly config load:file:C:\Users\Windows\.npmrc
+6 silly config load:file:C:\Users\Windows\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm ls next
+8 verbose argv "ls" "--json" "--depth" "0" "--" "next"
+9 verbose logfile logs-max:10 dir:D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-06-07T05_22_59_616Z-
+10 verbose logfile D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-06-07T05_22_59_616Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly packumentCache heap:2348810240 maxSize:587202560 maxEntrySize:293601280
+13 silly logfile done cleaning log files
+14 verbose cwd d:\VSCODE\make-my-trip-clone-springboot\makemytour
+15 verbose os Windows_NT 10.0.26200
+16 verbose node v24.13.0
+17 verbose npm  v11.6.2
+18 verbose exit 0
+19 info ok
