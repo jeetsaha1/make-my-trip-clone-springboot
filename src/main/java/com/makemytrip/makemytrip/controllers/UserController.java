@@ -29,10 +29,15 @@ public class UserController {
     }
     @GetMapping("/email")
     public ResponseEntity<Users> getuserbyemail(@RequestParam String email){
+
+        System.out.println("EMAIL ENDPOINT HIT: " + email);
+
         Users user = userServices.getUserByEmail(email);
+
         if(user != null){
             return ResponseEntity.ok(user);
         }
+
         return ResponseEntity.notFound().build();
     }
     @PostMapping("/edit")
@@ -47,4 +52,5 @@ public class UserController {
             return "Controller Works";
         }
     }
+    
 }
