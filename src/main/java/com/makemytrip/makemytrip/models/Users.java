@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Document(collection = "users")
 public class Users {
     @Id
@@ -11,6 +13,7 @@ public class Users {
     private String firstName;
     private String lastName;
     private String email;
+    @JsonIgnore
     private String password;
     private String role;
     private String phoneNumber;
