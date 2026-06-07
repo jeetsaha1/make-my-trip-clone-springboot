@@ -44,13 +44,5 @@ public class UserController {
     public Users editprofile(@RequestParam String id ,@RequestBody Users updatedUser){
         return userServices.editprofile(id,updatedUser);
     }
-    @RestController
-    public class RootController {
-
-        @GetMapping("/test")
-        public String test() {
-            return "Controller Works";
-        }
-    }
     
 }
