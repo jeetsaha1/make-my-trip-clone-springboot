@@ -1,16 +1,16 @@
 package com.makemytrip.makemytrip.controllers;
-import com.makemytrip.makemytrip.models.Users;
-import com.makemytrip.makemytrip.models.Flight;
-import com.makemytrip.makemytrip.models.Hotel;
-import com.makemytrip.makemytrip.repositories.UserRepository;
-import com.makemytrip.makemytrip.repositories.FlightRepository;
-import com.makemytrip.makemytrip.repositories.HotelRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
+
+import com.makemytrip.makemytrip.models.Flight;
+import com.makemytrip.makemytrip.models.Hotel;
+import com.makemytrip.makemytrip.repositories.FlightRepository;
+import com.makemytrip.makemytrip.repositories.HotelRepository;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -22,7 +22,7 @@ public class RootController {
     private FlightRepository flightRepository;
     @GetMapping("/")
     public String home() {
-        return "✅ It's running on port 8080!";
+        return "MakeMyTrip Backend Running";
     }
 
     @GetMapping("/hotel")
@@ -36,5 +36,9 @@ public class RootController {
         List<Flight> flights=flightRepository.findAll();
         return ResponseEntity.ok(flights);
     }
+    @GetMapping("/test")
+        public String test() {
+            return "API Working";
+        }
 
 }
