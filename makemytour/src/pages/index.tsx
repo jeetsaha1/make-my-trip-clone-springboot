@@ -27,6 +27,8 @@ export default function Home() {
   const [from, setfrom] = useState("");
   const [to, setto] = useState("");
   const [date, setdate] = useState("");
+  const [checkin, setCheckin] = useState("");
+  const [checkout, setCheckout] = useState("");
   const [travelers, settravelers] = useState(1);
   const [searchresults, setsearchresult] = useState<any[]>([]);
   const [hotel, sethotel] = useState<any[]>([]);
@@ -159,7 +161,7 @@ export default function Home() {
           FLIGHT.to.toLowerCase() === to.toLowerCase()
       );
       setsearchresult(results);
-    } else if (bookingtype === "hotels") {
+    } else if (bookingtype === "hotels" || bookingtype === "homestays") {
       const results = hotel.filter(
         (hotel) => hotel.location.toLowerCase() === to.toLowerCase()
       );
@@ -180,7 +182,10 @@ export default function Home() {
   const handlebooknow = (id: any) => {
     if (bookingtype === "flights") {
       router.push(`/book-flight/${id}`);
+    } else if (bookingtype === "hotels" || bookingtype === "homestays") {
+      router.push(`/book-hotel/${id}`);
     } else {
+      // fallback to hotel booking for other types
       router.push(`/book-hotel/${id}`);
     }
   };
@@ -218,13 +223,48 @@ export default function Home() {
               active={bookingtype === "hotels"}
               onClick={() => setbookingtype("hotels")}
             />
-            <NavItem icon={<HomeIcon />} text="Homestays" />
-            <NavItem icon={<Umbrella />} text="Holiday" />
-            <NavItem icon={<Train />} text="Trains" />
-            <NavItem icon={<Bus />} text="Buses" />
-            <NavItem icon={<Car />} text="Cabs" />
-            <NavItem icon={<CreditCard />} text="Forex" />
-            <NavItem icon={<Shield />} text="Insurance" />
+            <NavItem
+              icon={<HomeIcon />}
+              text="Homestays"
+              active={bookingtype === "homestays"}
+              onClick={() => setbookingtype("homestays")}
+            />
+            <NavItem
+              icon={<Umbrella />}
+              text="Holiday"
+              active={bookingtype === "holidays"}
+              onClick={() => setbookingtype("holidays")}
+            />
+            <NavItem
+              icon={<Train />}
+              text="Trains"
+              active={bookingtype === "trains"}
+              onClick={() => setbookingtype("trains")}
+            />
+            <NavItem
+              icon={<Bus />}
+              text="Buses"
+              active={bookingtype === "buses"}
+              onClick={() => setbookingtype("buses")}
+            />
+            <NavItem
+              icon={<Car />}
+              text="Cabs"
+              active={bookingtype === "cabs"}
+              onClick={() => setbookingtype("cabs")}
+            />
+            <NavItem
+              icon={<CreditCard />}
+              text="Forex"
+              active={bookingtype === "forex"}
+              onClick={() => setbookingtype("forex")}
+            />
+            <NavItem
+              icon={<Shield />}
+              text="Insurance"
+              active={bookingtype === "insurance"}
+              onClick={() => setbookingtype("insurance")}
+            />
           </div>
         </nav>
 
@@ -243,50 +283,106 @@ export default function Home() {
               </div>
             )}
 
-            <div className="col-span-1">
-              <SearchSelect
-                options={cityOptions}
-                placeholder={bookingtype === "flights" ? "To" : "City"}
-                value={to}
-                onChange={setto}
-                icon={<MapPin className="text-gray-400" />}
-                subtitle={
-                  bookingtype === "flights"
-                    ? "Enter city or airport"
-                    : "Enter city"
-                }
-              />
-            </div>
+            {bookingtype === "homestays" ? (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="Location"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city or area"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Check-in"
+                    value={checkin}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setCheckin(e.target.value)
+                    }
+                    subtitle="Select check-in"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Check-out"
+                    value={checkout}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setCheckout(e.target.value)
+                    }
+                    subtitle="Select check-out"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Guests"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of guests"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder={bookingtype === "flights" ? "To" : "City"}
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle={
+                      bookingtype === "flights"
+                        ? "Enter city or airport"
+                        : "Enter city"
+                    }
+                  />
+                </div>
 
-            <div className="col-span-1">
-              <SearchInput
-                icon={<Calendar className="text-gray-400" />}
-                placeholder="Date"
-                value={date}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setdate(e.target.value)
-                }
-                subtitle="Select a date"
-                type="date"
-              />
-            </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select a date"
+                    type="date"
+                  />
+                </div>
 
-            <div className="col-span-1">
-              <SearchInput
-                icon={<Users className="text-gray-400" />}
-                placeholder="Travelers"
-                value={travelers.toString()}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  settravelers(parseInt(e.target.value) || 1)
-                }
-                subtitle="Number of travelers"
-                type="number"
-              />
-            </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Travelers"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of travelers"
+                    type="number"
+                  />
+                </div>
 
-            <Button className="col-span-1 h-full" onClick={handlesearch}>
-              SEARCH
-            </Button>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            )}
           </div>
           <div className="mt-6">
             <h2 className="text-xl font-semibold mb-4 text-white">
