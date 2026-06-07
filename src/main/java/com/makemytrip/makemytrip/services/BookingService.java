@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,8 @@ public class BookingService {
 
                 Booking booking=new Booking();
                 booking.setType("Flight");
-                booking.setBookingId(flightId);
+                booking.setBookingId(UUID.randomUUID().toString());
+                booking.setReferenceId(flightId);
                 booking.setDate(LocalDateTime.now().toString());
                 booking.setQuantity(seats);
                 booking.setTotalPrice(price);
@@ -64,7 +66,8 @@ public class BookingService {
 
                 Booking booking=new Booking();
                 booking.setType("Hotel");
-                booking.setBookingId(hotelId);
+                booking.setBookingId(UUID.randomUUID().toString());
+                booking.setReferenceId(hotelId);
                 booking.setDate(LocalDateTime.now().toString());
                 booking.setQuantity(rooms);
                 booking.setTotalPrice(price);
@@ -103,14 +106,14 @@ public class BookingService {
             booking.setRefundTimeline("3-5 business days");
 
             if("Flight".equalsIgnoreCase(type)){
-                Optional<Flight> flightOptional = flightRepository.findById(bookingId);
+                Optional<Flight> flightOptional = flightRepository.findById(booking.getReferenceId());
                 if(flightOptional.isPresent()){
                     Flight flight = flightOptional.get();
                     flight.setAvailableSeats(flight.getAvailableSeats() + booking.getQuantity());
                     flightRepository.save(flight);
                 }
             } else if("Hotel".equalsIgnoreCase(type)){
-                Optional<Hotel> hotelOptional = hotelRepository.findById(bookingId);
+                Optional<Hotel> hotelOptional = hotelRepository.findById(booking.getReferenceId());
                 if(hotelOptional.isPresent()){
                     Hotel hotel = hotelOptional.get();
                     hotel.setAvailableRooms(hotel.getAvailableRooms() + booking.getQuantity());

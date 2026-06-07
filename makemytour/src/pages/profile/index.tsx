@@ -55,10 +55,12 @@ const Profile = () => {
     }
   }, [user]);
 
+  const getUserId = () => user?.id || user?._id;
+
   const handleSave = async () => {
     try {
       const data = await editprofile(
-        user?.id,
+        getUserId(),
         userData.firstName,
         userData.lastName,
         userData.email,
@@ -94,12 +96,13 @@ const Profile = () => {
   };
 
   const handleCancellation = async (booking: any) => {
-    if (!user?.id || !booking?.bookingId) {
+    const userId = getUserId();
+    if (!userId || !booking?.bookingId) {
       return;
     }
     try {
       setCancelLoading(true);
-      const data = await cancelBooking(user.id, booking.bookingId, booking.type, cancelReason);
+      const data = await cancelBooking(userId, booking.bookingId, booking.type, cancelReason);
       dispatch(setUser(data));
       setCancellationBookingId("");
     } catch (error) {

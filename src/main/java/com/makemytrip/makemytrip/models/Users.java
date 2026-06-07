@@ -51,6 +51,7 @@ public class Users {
     public static class Booking{
         private String type;
         private String bookingId;
+        private String referenceId;
         private String date;
         private int quantity;
         private double totalPrice;
@@ -77,6 +78,14 @@ public class Users {
 
         public void setBookingId(String bookingId) {
             this.bookingId = bookingId;
+        }
+
+        public String getReferenceId() {
+            return referenceId;
+        }
+
+        public void setReferenceId(String referenceId) {
+            this.referenceId = referenceId;
         }
 
         public String getDate() {
