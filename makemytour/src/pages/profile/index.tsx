@@ -16,7 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { clearUser, setUser } from "@/store";
-import { editprofile } from "@/api";
+import { cancelBooking, editprofile } from "@/api";
 const Profile = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user.user);
@@ -28,39 +28,33 @@ const Profile = () => {
   };
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
-    firstName: user?.firstName ? user?.firstName : "",
-    lastName: user?.lastName ? user?.lastName : "",
-    email: user?.email ? user?.email : "",
-    phoneNumber: user?.phoneNumber ? user?.phoneNumber : "",
-    bookings: [
-      {
-        type: "Flight",
-        bookingId: "F123456",
-        date: "2024-03-25",
-        quantity: 2,
-        totalPrice: 12499,
-        details: {
-          from: "Delhi",
-          to: "Mumbai",
-          airline: "IndiGo",
-        },
-      },
-      {
-        type: "Hotel",
-        bookingId: "H789012",
-        date: "2024-04-15",
-        quantity: 1,
-        totalPrice: 8999,
-        details: {
-          name: "Taj Palace",
-          location: "Goa",
-          nights: 3,
-        },
-      },
-    ],
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
   });
+  const [cancellationBookingId, setCancellationBookingId] = useState("");
+  const [cancelReason, setCancelReason] = useState("Change of plans");
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const cancellationReasons = [
+    "Change of plans",
+    "Found a better price",
+    "Travel date changed",
+    "Personal reasons",
+    "Other",
+  ];
 
-  const [editForm, setEditForm] = useState({ ...userData });
+  React.useEffect(() => {
+    if (user) {
+      setUserData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+      });
+    }
+  }, [user]);
+
   const handleSave = async () => {
     try {
       const data = await editprofile(
@@ -73,7 +67,14 @@ const Profile = () => {
       dispatch(setUser(data));
       setIsEditing(false);
     } catch (error) {
-      setUserData(editForm);
+      if (user) {
+        setUserData({
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          email: user.email || "",
+          phoneNumber: user.phoneNumber || "",
+        });
+      }
       setIsEditing(false);
     }
   };
@@ -87,10 +88,27 @@ const Profile = () => {
   };
   const handleEditFormChange = (field:any, value:any) => {
     setUserData((prevState) => ({
-        ...prevState,
-        [field]: value, // Update the specific field dynamically
-      }));
+      ...prevState,
+      [field]: value,
+    }));
   };
+
+  const handleCancellation = async (booking: any) => {
+    if (!user?.id || !booking?.bookingId) {
+      return;
+    }
+    try {
+      setCancelLoading(true);
+      const data = await cancelBooking(user.id, booking.bookingId, booking.type, cancelReason);
+      dispatch(setUser(data));
+      setCancellationBookingId("");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pt-8 px-4">
       <div className="max-w-6xl mx-auto">
@@ -169,7 +187,14 @@ const Profile = () => {
                     <button
                       onClick={() => {
                         setIsEditing(false);
-                        setEditForm({ ...user });
+                        if (user) {
+                          setUserData({
+                            firstName: user.firstName || "",
+                            lastName: user.lastName || "",
+                            email: user.email || "",
+                            phoneNumber: user.phoneNumber || "",
+                          });
+                        }
                       }}
                       className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
                     >
@@ -244,7 +269,7 @@ const Profile = () => {
                         <p className="text-sm text-gray-500">{booking?.type}</p>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-4 h-4" />
                         <span>{formatDate(booking?.date)}</span>
@@ -255,9 +280,66 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <CreditCard className="w-4 h-4" />
-                        <span>Paid</span>
+                        <span>{booking?.bookingStatus || "Confirmed"}</span>
                       </div>
                     </div>
+                    {booking?.bookingStatus === "Cancelled" ? (
+                      <div className="rounded-lg bg-red-50 p-4 mb-4 text-sm text-red-700">
+                        <p className="font-semibold">Refund Status: {booking?.refundStatus}</p>
+                        <p>Amount: ₹ {booking?.refundAmount?.toLocaleString("en-IN")}</p>
+                        <p>Reason: {booking?.refundReason}</p>
+                        <p>Timeline: {booking?.refundTimeline}</p>
+                      </div>
+                    ) : null}
+                    {booking?.bookingStatus !== "Cancelled" ? (
+                      <div className="space-y-3">
+                        {cancellationBookingId === booking?.bookingId ? (
+                          <div className="space-y-3">
+                            <label className="block text-sm font-medium text-gray-700">
+                              Select cancellation reason
+                            </label>
+                            <select
+                              value={cancelReason}
+                              onChange={(e) => setCancelReason(e.target.value)}
+                              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            >
+                              {cancellationReasons.map((reason) => (
+                                <option key={reason} value={reason}>
+                                  {reason}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="flex gap-3">
+                              <button
+                                disabled={cancelLoading}
+                                onClick={() => handleCancellation(booking)}
+                                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
+                              >
+                                {cancelLoading ? "Processing..." : "Submit Cancellation"}
+                              </button>
+                              <button
+                                disabled={cancelLoading}
+                                onClick={() => setCancellationBookingId("")}
+                                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setCancellationBookingId(booking?.bookingId || "");
+                              setCancelReason("Change of plans");
+                            }}
+                            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                          >
+                            <X className="w-4 h-4" />
+                            Cancel Booking
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 ))}
               </div>

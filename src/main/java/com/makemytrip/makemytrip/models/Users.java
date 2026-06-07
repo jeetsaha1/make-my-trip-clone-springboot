@@ -54,6 +54,13 @@ public class Users {
         private String date;
         private int quantity;
         private double totalPrice;
+        private String bookingStatus = "Confirmed";
+        private String refundStatus;
+        private double refundAmount;
+        private String refundReason;
+        private String refundTimeline;
+        private String cancellationReason;
+        private String cancellationDate;
 
         // Getters and Setters
         public String getType() {
@@ -94,6 +101,62 @@ public class Users {
 
         public void setTotalPrice(double totalPrice) {
             this.totalPrice = totalPrice;
+        }
+
+        public String getBookingStatus() {
+            return bookingStatus;
+        }
+
+        public void setBookingStatus(String bookingStatus) {
+            this.bookingStatus = bookingStatus;
+        }
+
+        public String getRefundStatus() {
+            return refundStatus;
+        }
+
+        public void setRefundStatus(String refundStatus) {
+            this.refundStatus = refundStatus;
+        }
+
+        public double getRefundAmount() {
+            return refundAmount;
+        }
+
+        public void setRefundAmount(double refundAmount) {
+            this.refundAmount = refundAmount;
+        }
+
+        public String getRefundReason() {
+            return refundReason;
+        }
+
+        public void setRefundReason(String refundReason) {
+            this.refundReason = refundReason;
+        }
+
+        public String getRefundTimeline() {
+            return refundTimeline;
+        }
+
+        public void setRefundTimeline(String refundTimeline) {
+            this.refundTimeline = refundTimeline;
+        }
+
+        public String getCancellationReason() {
+            return cancellationReason;
+        }
+
+        public void setCancellationReason(String cancellationReason) {
+            this.cancellationReason = cancellationReason;
+        }
+
+        public String getCancellationDate() {
+            return cancellationDate;
+        }
+
+        public void setCancellationDate(String cancellationDate) {
+            this.cancellationDate = cancellationDate;
         }
     }
 }

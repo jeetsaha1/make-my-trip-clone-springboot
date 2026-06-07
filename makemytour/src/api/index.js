@@ -204,3 +204,18 @@ export const handlehotelbooking = async (userId, hotelId, rooms, price) => {
     console.log(error);
   }
 };
+
+export const cancelBooking = async (userId, bookingId, type, reason) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/booking/cancel`, {
+      userId,
+      bookingId,
+      type,
+      reason,
+    });
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

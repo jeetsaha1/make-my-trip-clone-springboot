@@ -1,12 +1,19 @@
 package com.makemytrip.makemytrip.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.makemytrip.makemytrip.models.BookingCancellationRequest;
 import com.makemytrip.makemytrip.models.Users;
 import com.makemytrip.makemytrip.services.BookingService;
 
 @RestController
 @RequestMapping("/booking")
+@CrossOrigin(origins = "*")
 public class BookingController {
     @Autowired
     private BookingService bookingService;
@@ -18,5 +25,10 @@ public class BookingController {
     @PostMapping("/hotel")
     public Users.Booking bookhotel (@RequestParam String userId,@RequestParam String hotelId,@RequestParam int rooms,@RequestParam double price){
         return bookingService.bookhotel(userId,hotelId,rooms,price);
+    }
+
+    @PostMapping("/cancel")
+    public Users cancelBooking(@RequestBody BookingCancellationRequest request){
+        return bookingService.cancelBooking(request.getUserId(), request.getBookingId(), request.getType(), request.getReason());
     }
 }
