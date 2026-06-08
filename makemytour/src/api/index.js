@@ -203,6 +203,83 @@ export const handlehotelbooking = async (userId, hotelId, rooms, price) => {
   }
 };
 
+export const getReviews = async (entityType, entityId, sort = "newest", stars) => {
+  try {
+    let url = `${BACKEND_URL}/reviews?entityType=${entityType}&entityId=${entityId}&sort=${sort}`;
+    if (stars) {
+      url += `&stars=${stars}`;
+    }
+    const res = await axios.get(url);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return [];
+  }
+};
+
+export const getReviewSummary = async (entityType, entityId) => {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/reviews/summary?entityType=${entityType}&entityId=${entityId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching review summary:", error);
+    return { averageRating: 0, reviewCount: 0, ratingBreakdown: {} };
+  }
+};
+
+export const postReview = async (review) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/reviews`, review);
+    return res.data;
+  } catch (error) {
+    console.error("Error submitting review:", error);
+    throw error;
+  }
+};
+
+export const postReviewReply = async (reviewId, reply) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/reviews/${reviewId}/reply`, reply);
+    return res.data;
+  } catch (error) {
+    console.error("Error posting review reply:", error);
+    throw error;
+  }
+};
+
+export const flagReview = async (reviewId, userId, reason) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/reviews/${reviewId}/flag`, {
+      userId,
+      reason,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error flagging review:", error);
+    throw error;
+  }
+};
+
+export const moderateReview = async (reviewId, status) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/reviews/${reviewId}/moderate`, { status });
+    return res.data;
+  } catch (error) {
+    console.error("Error moderating review:", error);
+    throw error;
+  }
+};
+
+export const getFlaggedReviews = async () => {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/reviews/flagged`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching flagged reviews:", error);
+    return [];
+  }
+};
+
 export const cancelBooking = async (userId, bookingId, type, reason) => {
   try {
     const res = await axios.post(`${BACKEND_URL}/booking/cancel`, {

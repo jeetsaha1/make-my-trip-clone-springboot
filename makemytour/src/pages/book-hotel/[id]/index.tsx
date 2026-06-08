@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { useDispatch, useSelector } from "react-redux";
 import SignupDialog from "@/components/SignupDialog";
 import Loader from "@/components/Loader";
+import ReviewSection from "@/components/ReviewSection";
 import { setUser } from "@/store";
 const BookHotelPage = () => {
   const [quantity, setQuantity] = useState(1);
@@ -450,27 +451,7 @@ const BookHotelPage = () => {
               </button>
             </div>
 
-            {/* Rating Card */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-blue-500 text-white text-2xl font-bold w-16 h-16 rounded-lg flex items-center justify-center">
-                    {hotelData.reviews.rating}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-lg">
-                      {hotelData.reviews.text}
-                    </div>
-                    <div className="text-gray-500">
-                      ({hotelData.reviews.count} ratings)
-                    </div>
-                  </div>
-                </div>
-                <a href="#" className="text-blue-500">
-                  All Reviews
-                </a>
-              </div>
-            </div>
+            <ReviewSection entityType="hotel" entityId={hotelId || ""} user={user} />
 
             {/* Location Card */}
             <div className="bg-white rounded-xl shadow-lg p-6 mt-6">

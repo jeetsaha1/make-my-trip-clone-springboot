@@ -40,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { Users, Ticket } from "lucide-react";
 import SignupDialog from "@/components/SignupDialog";
 import Loader from "@/components/Loader";
+import ReviewSection from "@/components/ReviewSection";
 import { setUser } from "@/store";
 const BookFlightPage = () => {
   const router = useRouter();
@@ -487,6 +488,8 @@ const BookFlightPage = () => {
                 ))}
               </div>
             </div>
+
+            <ReviewSection entityType="flight" entityId={flightId || ""} user={user} />
           </div>
 
           {/* Fare Summary */}

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -28,6 +28,8 @@ import {
   editflight,
   edithotel,
   getuserbyemail,
+  getFlaggedReviews,
+  moderateReview,
 } from "@/api";
 import HotelList from "@/components/Hotel/Hotel";
 const mockFlights = [
@@ -181,13 +183,13 @@ function AddEditHotel({ hotel }: { hotel: Hotel | null }) {
   }, [hotel]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (hotel) {
       await edithotel(
@@ -323,7 +325,7 @@ function AddEditFlight({ flight }: { flight: Flight | null }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     // Here you would typically send this data to your backend
     console.log("Submitting flight data:", formData);
@@ -450,15 +452,43 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("flights");
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [selectedHotel, setSelectedHotel] = useState(null);
+  const [flaggedReviews, setFlaggedReviews] = useState<any[]>([]);
+  const [flaggedLoading, setFlaggedLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchFlagged = async () => {
+      if (activeTab !== "moderation") return;
+      setFlaggedLoading(true);
+      try {
+        const flagged = await getFlaggedReviews();
+        setFlaggedReviews(flagged || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setFlaggedLoading(false);
+      }
+    };
+    fetchFlagged();
+  }, [activeTab]);
+
+  const handleModeration = async (reviewId: string, status: string) => {
+    try {
+      await moderateReview(reviewId, status);
+      setFlaggedReviews((prev) => prev.filter((review) => review.id !== reviewId && review._id !== reviewId));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 bg-white max-w-full">
       <h1 className="text-3xl font-bold mb-6 ">Admin Dashboard</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3  text-black">
+        <TabsList className="grid w-full grid-cols-4  text-black">
           <TabsTrigger value="flights">Flights</TabsTrigger>
           <TabsTrigger value="hotels">Hotels</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="moderation">Moderation</TabsTrigger>
         </TabsList>
         <TabsContent value="flights">
           <Card>
@@ -500,6 +530,50 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <UserSearch />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="moderation">
+          <Card>
+            <CardHeader>
+              <CardTitle>Flagged Reviews</CardTitle>
+              <CardDescription>Review flagged content and approve or reject it.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {flaggedLoading ? (
+                <p>Loading flagged reviews...</p>
+              ) : flaggedReviews.length === 0 ? (
+                <p>No flagged reviews at the moment.</p>
+              ) : (
+                <div className="space-y-4">
+                  {flaggedReviews.map((review) => (
+                    <div key={review.id || review._id} className="rounded-xl border border-gray-200 p-4">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                          <p className="text-sm text-gray-500">{review.entityType} ID: {review.entityId}</p>
+                          <h3 className="font-semibold">{review.title || "Untitled Review"}</h3>
+                          <p className="text-sm text-gray-600">By {review.userName || "Anonymous"}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700 text-sm">
+                            {review.flagCount || 0} flags
+                          </span>
+                          <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 text-sm">
+                            {review.status}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mt-3">{review.text}</p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button onClick={() => handleModeration(review.id || review._id, "approved")}>Approve</Button>
+                        <Button onClick={() => handleModeration(review.id || review._id, "rejected")} variant="secondary">
+                          Reject
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
