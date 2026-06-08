@@ -34,6 +34,11 @@ export default function Home() {
   const [hotel, sethotel] = useState<any[]>([]);
   const [loading, setloading] = useState(true);
   const [flight, setflight] = useState<any[]>([]);
+  const [guests, setguests] = useState(1);
+  const [currency, setcurrency] = useState("USD");
+  const [amount, setamount] = useState("");
+  const [policyType, setpolicyType] = useState("Travel");
+  const [coverage, setcoverage] = useState("1000000");
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
   const flightD = [
@@ -49,26 +54,164 @@ export default function Home() {
     { id: 3, name: "Seaside Resort", city: "Goa", price: 12000 },
     { id: 4, name: "Mountain View Hotel", city: "Shimla", price: 10000 },
   ];
-  const offers = [
-    {
-      title: "Domestic Flights",
-      description: "Get up to 20% off on domestic flights",
-      imageUrl:
-        "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800",
-    },
-    {
-      title: "International Hotels",
-      description: "Book luxury hotels worldwide",
-      imageUrl:
-        "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800",
-    },
-    {
-      title: "Holiday Packages",
-      description: "Exclusive deals on holiday packages",
-      imageUrl:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800",
-    },
-  ];
+  const offers = useMemo(() => {
+    const baseOffers: any = {
+      flights: [
+        {
+          title: "Domestic Flights",
+          description: "Get up to 20% off on domestic flights",
+          imageUrl: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "International Flights",
+          description: "Explore global destinations",
+          imageUrl: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Last Minute Flights",
+          description: "Amazing deals on last-minute bookings",
+          imageUrl: "https://images.unsplash.com/photo-1455218873509-8097f427b1d2?auto=format&fit=crop&w=800",
+        },
+      ],
+      hotels: [
+        {
+          title: "Luxury Hotels",
+          description: "5-star hotels at discounted rates",
+          imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Budget Hotels",
+          description: "Affordable stays in major cities",
+          imageUrl: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Resort Stays",
+          description: "Escape to paradise resorts",
+          imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800",
+        },
+      ],
+      homestays: [
+        {
+          title: "Urban Homestays",
+          description: "Authentic stays in city centers",
+          imageUrl: "https://images.unsplash.com/photo-1501785888041-af3ee9c470a0?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Beach Homestays",
+          description: "Beachfront living experiences",
+          imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Mountain Homestays",
+          description: "Peaceful mountain retreats",
+          imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800",
+        },
+      ],
+      holidays: [
+        {
+          title: "Goa Holiday Packages",
+          description: "Beach holidays with exclusive discounts",
+          imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Kashmir Tours",
+          description: "Explore the valley of paradise",
+          imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Himalayan Adventure",
+          description: "Thrilling mountain experiences",
+          imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800",
+        },
+      ],
+      trains: [
+        {
+          title: "Luxury Trains",
+          description: "Experience premium train journeys",
+          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Budget Trains",
+          description: "Affordable train travel across India",
+          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Rajdhani Express",
+          description: "Swift connections between major cities",
+          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+        },
+      ],
+      buses: [
+        {
+          title: "AC Coaches",
+          description: "Comfortable long-distance bus travels",
+          imageUrl: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Night Buses",
+          description: "Safe overnight bus journeys",
+          imageUrl: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Sleeper Buses",
+          description: "Sleep peacefully while you travel",
+          imageUrl: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=800",
+        },
+      ],
+      cabs: [
+        {
+          title: "Outstation Cabs",
+          description: "Reliable cabs for outstation trips",
+          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Airport Transfers",
+          description: "Hassle-free airport pickups",
+          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Hourly Rentals",
+          description: "Rent cabs by the hour for city travel",
+          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+        },
+      ],
+      forex: [
+        {
+          title: "Best Exchange Rates",
+          description: "Get the best forex conversion rates",
+          imageUrl: "https://images.unsplash.com/photo-1633683715463-66d36294d71c?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Travel Money Cards",
+          description: "Global travel with prepaid forex cards",
+          imageUrl: "https://images.unsplash.com/photo-1633683715463-66d36294d71c?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Currency Exchange",
+          description: "Fast and secure currency conversion",
+          imageUrl: "https://images.unsplash.com/photo-1633683715463-66d36294d71c?auto=format&fit=crop&w=800",
+        },
+      ],
+      insurance: [
+        {
+          title: "Travel Insurance",
+          description: "Comprehensive coverage for your trips",
+          imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Flight Insurance",
+          description: "Flight delay & cancellation coverage",
+          imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800",
+        },
+        {
+          title: "Annual Travel Insurance",
+          description: "Coverage for unlimited trips",
+          imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800",
+        },
+      ],
+    };
+    return baseOffers[bookingtype] || baseOffers.flights;
+  }, [bookingtype]);
 
   const collections = [
     {
@@ -191,10 +334,21 @@ export default function Home() {
   };
 
   const handleOfferBook = (offerTitle: string) => {
-    if (offerTitle.toLowerCase().includes("flight")) {
+    const titleLower = offerTitle.toLowerCase();
+    if (titleLower.includes("flight")) {
       router.push(`/book-flight/${flightD[0].id}`);
-    } else if (offerTitle.toLowerCase().includes("hotel")) {
+    } else if (titleLower.includes("hotel")) {
       router.push(`/book-hotel/${hotelData[0].id}`);
+    } else if (titleLower.includes("train") || titleLower.includes("rajdhani")) {
+      alert("Train booking feature coming soon!");
+    } else if (titleLower.includes("bus")) {
+      alert("Bus booking feature coming soon!");
+    } else if (titleLower.includes("cab")) {
+      alert("Cab booking feature coming soon!");
+    } else if (titleLower.includes("forex") || titleLower.includes("currency")) {
+      alert("Forex booking feature coming soon!");
+    } else if (titleLower.includes("insurance") || titleLower.includes("travel")) {
+      alert("Insurance booking feature coming soon!");
     } else {
       router.push(`/book-flight/${flightD[0].id}`);
     }
@@ -270,20 +424,116 @@ export default function Home() {
 
         <div className="bg-white rounded-xl shadow-lg mx-auto max-w-5xl p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* FLIGHTS FORM */}
             {bookingtype === "flights" && (
-              <div className="col-span-1">
-                <SearchSelect
-                  options={cityOptions}
-                  placeholder="From"
-                  value={from}
-                  onChange={setfrom}
-                  icon={<MapPin className="text-gray-400" />}
-                  subtitle="Enter city or airport"
-                />
-              </div>
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="From"
+                    value={from}
+                    onChange={setfrom}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city or airport"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="To"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city or airport"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select a date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Travelers"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of travelers"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
             )}
 
-            {bookingtype === "homestays" ? (
+            {/* HOTELS FORM */}
+            {bookingtype === "hotels" && (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="City"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Check-in"
+                    value={checkin}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setCheckin(e.target.value)
+                    }
+                    subtitle="Select check-in"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Check-out"
+                    value={checkout}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setCheckout(e.target.value)
+                    }
+                    subtitle="Select check-out"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Guests"
+                    value={guests.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setguests(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of guests"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            )}
+
+            {/* HOMESTAYS FORM */}
+            {bookingtype === "homestays" && (
               <>
                 <div className="col-span-1">
                   <SearchSelect
@@ -323,9 +573,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Users className="text-gray-400" />}
                     placeholder="Guests"
-                    value={travelers.toString()}
+                    value={guests.toString()}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      settravelers(parseInt(e.target.value) || 1)
+                      setguests(parseInt(e.target.value) || 1)
                     }
                     subtitle="Number of guests"
                     type="number"
@@ -335,51 +585,355 @@ export default function Home() {
                   SEARCH
                 </Button>
               </>
-            ) : (
+            )}
+
+            {/* HOLIDAYS FORM */}
+            {bookingtype === "holidays" && (
               <>
                 <div className="col-span-1">
                   <SearchSelect
                     options={cityOptions}
-                    placeholder={bookingtype === "flights" ? "To" : "City"}
+                    placeholder="Destination"
                     value={to}
                     onChange={setto}
                     icon={<MapPin className="text-gray-400" />}
-                    subtitle={
-                      bookingtype === "flights"
-                        ? "Enter city or airport"
-                        : "Enter city"
-                    }
+                    subtitle="Select destination"
                   />
                 </div>
-
                 <div className="col-span-1">
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
-                    placeholder="Date"
+                    placeholder="Start Date"
                     value={date}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       setdate(e.target.value)
                     }
-                    subtitle="Select a date"
+                    subtitle="Select start date"
                     type="date"
                   />
                 </div>
-
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Duration (days)"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of days"
+                    type="number"
+                  />
+                </div>
                 <div className="col-span-1">
                   <SearchInput
                     icon={<Users className="text-gray-400" />}
                     placeholder="Travelers"
-                    value={travelers.toString()}
+                    value={guests.toString()}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      settravelers(parseInt(e.target.value) || 1)
+                      setguests(parseInt(e.target.value) || 1)
                     }
                     subtitle="Number of travelers"
                     type="number"
                   />
                 </div>
-
                 <Button className="col-span-1 h-full" onClick={handlesearch}>
                   SEARCH
+                </Button>
+              </>
+            )}
+
+            {/* TRAINS FORM */}
+            {bookingtype === "trains" && (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="From"
+                    value={from}
+                    onChange={setfrom}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="To"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Journey Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Passengers"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of passengers"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            )}
+
+            {/* BUSES FORM */}
+            {bookingtype === "buses" && (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="From"
+                    value={from}
+                    onChange={setfrom}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="To"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Travel Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Passengers"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of passengers"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            )}
+
+            {/* CABS FORM */}
+            {bookingtype === "cabs" && (
+              <>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="Pickup Location"
+                    value={from}
+                    onChange={setfrom}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter pickup city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchSelect
+                    options={cityOptions}
+                    placeholder="Drop Location"
+                    value={to}
+                    onChange={setto}
+                    icon={<MapPin className="text-gray-400" />}
+                    subtitle="Enter drop city"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Travel Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Seats"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of seats"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  SEARCH
+                </Button>
+              </>
+            )}
+
+            {/* FOREX FORM */}
+            {bookingtype === "forex" && (
+              <>
+                <div className="col-span-1">
+                  <div className="border rounded-lg p-3 hover:border-blue-500 cursor-pointer h-full">
+                    <div className="flex items-center space-x-2">
+                      <CreditCard className="text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500 truncate">From Currency</div>
+                        <select
+                          value={currency}
+                          onChange={(e) => setcurrency(e.target.value)}
+                          className="font-semibold w-full bg-transparent outline-none"
+                        >
+                          <option>USD</option>
+                          <option>EUR</option>
+                          <option>GBP</option>
+                          <option>JPY</option>
+                          <option>AUD</option>
+                        </select>
+                        <div className="text-xs text-gray-400 truncate">Select currency</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <div className="border rounded-lg p-3 hover:border-blue-500 cursor-pointer h-full">
+                    <div className="flex items-center space-x-2">
+                      <CreditCard className="text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500 truncate">To Currency</div>
+                        <select
+                          value="INR"
+                          onChange={() => {}}
+                          className="font-semibold w-full bg-transparent outline-none"
+                        >
+                          <option>INR</option>
+                        </select>
+                        <div className="text-xs text-gray-400 truncate">Indian Rupees</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<CreditCard className="text-gray-400" />}
+                    placeholder="Amount"
+                    value={amount}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setamount(e.target.value)
+                    }
+                    subtitle="Enter amount"
+                    type="number"
+                  />
+                </div>
+                <div></div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  CONVERT
+                </Button>
+              </>
+            )}
+
+            {/* INSURANCE FORM */}
+            {bookingtype === "insurance" && (
+              <>
+                <div className="col-span-1">
+                  <div className="border rounded-lg p-3 hover:border-blue-500 cursor-pointer h-full">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500 truncate">Policy Type</div>
+                        <select
+                          value={policyType}
+                          onChange={(e) => setpolicyType(e.target.value)}
+                          className="font-semibold w-full bg-transparent outline-none"
+                        >
+                          <option>Travel</option>
+                          <option>Flight</option>
+                          <option>Trip Cancellation</option>
+                          <option>Annual</option>
+                        </select>
+                        <div className="text-xs text-gray-400 truncate">Select type</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <div className="border rounded-lg p-3 hover:border-blue-500 cursor-pointer h-full">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="text-gray-400" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-500 truncate">Coverage</div>
+                        <select
+                          value={coverage}
+                          onChange={(e) => setcoverage(e.target.value)}
+                          className="font-semibold w-full bg-transparent outline-none"
+                        >
+                          <option value="500000">₹5 Lakhs</option>
+                          <option value="1000000">₹10 Lakhs</option>
+                          <option value="2000000">₹20 Lakhs</option>
+                          <option value="5000000">₹50 Lakhs</option>
+                        </select>
+                        <div className="text-xs text-gray-400 truncate">Select coverage</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Start Date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setdate(e.target.value)
+                    }
+                    subtitle="Select start date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Users className="text-gray-400" />}
+                    placeholder="Duration (days)"
+                    value={travelers.toString()}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      settravelers(parseInt(e.target.value) || 1)
+                    }
+                    subtitle="Number of days"
+                    type="number"
+                  />
+                </div>
+                <Button className="col-span-1 h-full" onClick={handlesearch}>
+                  GET QUOTE
                 </Button>
               </>
             )}
@@ -451,7 +1005,7 @@ export default function Home() {
           <section className="my-16">
             <h2 className="text-2xl font-bold mb-8 text-white">Best Offers</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {offers.map((offer, index) => (
+              {offers.map((offer: any, index: number) => (
                 <OfferCard
                   key={index}
                   {...offer}
