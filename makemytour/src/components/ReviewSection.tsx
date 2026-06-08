@@ -157,8 +157,8 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
   };
 
   return (
-    <section className="bg-white rounded-xl shadow-lg p-6 mt-8">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+    <section id="reviews" className="bg-white rounded-xl shadow-lg p-6 mt-8">
+      <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold">Reviews</h2>
           <p className="text-gray-600 mt-1">
@@ -166,7 +166,7 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <div>
+          <div className="min-w-[150px]">
             <Label htmlFor="review-sort" className="text-sm text-gray-500">
               Sort by
             </Label>
@@ -183,7 +183,7 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
               ))}
             </select>
           </div>
-          <div>
+          <div className="min-w-[150px]">
             <Label htmlFor="review-filter" className="text-sm text-gray-500">
               Filter stars
             </Label>
@@ -204,8 +204,8 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-1 bg-slate-50 rounded-xl p-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[240px_1fr] gap-6 mb-8">
+        <div className="bg-slate-50 rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="text-4xl font-bold text-blue-600">{summary.averageRating.toFixed(1)}</div>
             <div>
@@ -232,12 +232,13 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
                 <Label htmlFor="rating" className="text-sm text-gray-500">
                   Rating
                 </Label>
-                <div className="mt-2 flex items-center gap-1">
+                <div className="mt-2 flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       type="button"
                       key={star}
-                      className={`rounded-full p-2 ${rating >= star ? "bg-yellow-400 text-white" : "bg-gray-100 text-gray-600"}`}
+                      aria-label={`${star} star`}
+                      className={`rounded-full p-2 transition ${rating >= star ? "bg-yellow-400 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                       onClick={() => setRating(star)}
                     >
                       <Star className="w-4 h-4" />

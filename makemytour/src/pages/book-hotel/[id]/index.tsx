@@ -49,6 +49,7 @@ const BookHotelPage = () => {
   const [loading, setLoading] = useState(true);
   const user = useSelector((state: any) => state.user.user);
   const [open, setopem] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
     if (!hotelId) return;
@@ -342,8 +343,14 @@ const BookHotelPage = () => {
 
             {/* Description */}
             <p className="text-gray-600 mb-6">
-              {hotelData.description}
-              <button className="text-blue-500 ml-2">Read more</button>
+              {showFullDescription ? hotelData.description : `${hotelData.description.slice(0, 170)}...`}
+              <button
+                type="button"
+                className="text-blue-500 ml-2"
+                onClick={() => setShowFullDescription((prev) => !prev)}
+              >
+                {showFullDescription ? "Show less" : "Read more"}
+              </button>
             </p>
 
             {/* Amenities */}
@@ -446,9 +453,14 @@ const BookHotelPage = () => {
                 )}
               </Dialog>
 
-              <button className="w-full text-blue-500 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setopem(true)}
+              >
                 14 More Options
-              </button>
+              </Button>
             </div>
 
             <ReviewSection entityType="hotel" entityId={hotelId || ""} user={user} />
@@ -461,7 +473,13 @@ const BookHotelPage = () => {
                     {hotel.location}
                   </h3>
                 </div>
-                <button className="text-blue-500">See on Map</button>
+                <button
+                  type="button"
+                  className="text-blue-500"
+                  onClick={() => window.open(`https://www.google.com/maps/search/${encodeURIComponent(hotel.location)}`, "_blank")}
+                >
+                  See on Map
+                </button>
               </div>
             </div>
           </div>
