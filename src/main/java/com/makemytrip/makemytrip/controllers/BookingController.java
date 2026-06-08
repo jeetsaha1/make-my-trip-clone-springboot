@@ -15,7 +15,7 @@ import com.makemytrip.makemytrip.services.BookingService;
 @RequestMapping("/booking")
 @CrossOrigin(origins = "*")
 public class BookingController {
-    @Autowired
+    @Autowired 
     private BookingService bookingService;
 
     @PostMapping("/flight")
