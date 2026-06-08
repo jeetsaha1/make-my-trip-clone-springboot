@@ -1,4 +1,4 @@
-import { getflight, gethotel } from "@/api";
+import { getCollection } from "@/api";
 import Loader from "@/components/Loader";
 import { SearchSelect } from "@/components/SearchSelect";
 import SignupDialog from "@/components/SignupDialog";
@@ -263,13 +263,67 @@ export default function Home() {
     },
   ];
 
+  const collectionMap: Record<string, string> = {
+    flights: "flight",
+    hotels: "hotels",
+    homestays: "homestays",
+    holidays: "holidaypackages",
+    trains: "trains",
+    buses: "buses",
+    cabs: "cabs",
+    forex: "forex",
+    insurance: "insurance",
+  };
+
+  const [allData, setAllData] = useState<Record<string, any[]>>({
+    flights: [],
+    hotels: [],
+    homestays: [],
+    holidays: [],
+    trains: [],
+    buses: [],
+    cabs: [],
+    forex: [],
+    insurance: [],
+  });
+
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const data = await gethotel();
-        sethotel(data);
-        const flightdata = await getflight();
-        setflight(flightdata);
+        const [
+          flightData,
+          hotelData,
+          homestayData,
+          holidayData,
+          trainData,
+          busData,
+          cabData,
+          forexData,
+          insuranceData,
+        ] = await Promise.all([
+          getCollection(collectionMap.flights),
+          getCollection(collectionMap.hotels),
+          getCollection(collectionMap.homestays),
+          getCollection(collectionMap.holidays),
+          getCollection(collectionMap.trains),
+          getCollection(collectionMap.buses),
+          getCollection(collectionMap.cabs),
+          getCollection(collectionMap.forex),
+          getCollection(collectionMap.insurance),
+        ]);
+
+        setAllData({
+          flights: flightData,
+          hotels: hotelData,
+          homestays: homestayData,
+          holidays: holidayData,
+          trains: trainData,
+          buses: busData,
+          cabs: cabData,
+          forex: forexData,
+          insurance: insuranceData,
+        });
+        setsearchresult(flightData || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -280,37 +334,82 @@ export default function Home() {
     fetchdata();
   }, [user]);
 
+  useEffect(() => {
+    setsearchresult(allData[bookingtype] || []);
+  }, [bookingtype, allData]);
+
   const cityOptions = useMemo(() => {
     const cities = new Set<string>();
-    (flight || []).forEach((flight) => {
-      cities.add(flight.from);
-      cities.add(flight.to);
-    });
 
-    (hotel || []).forEach((hotel) => {
-      cities.add(hotel.location);
+    const addCity = (value: any) => {
+      if (typeof value === "string" && value.trim()) {
+        cities.add(value);
+      }
+    };
+
+    (allData.flights || []).forEach((item) => {
+      addCity(item.from);
+      addCity(item.to);
     });
+    (allData.trains || []).forEach((item) => {
+      addCity(item.from);
+      addCity(item.to);
+    });
+    (allData.buses || []).forEach((item) => {
+      addCity(item.from);
+      addCity(item.to);
+    });
+    (allData.hotels || []).forEach((item) => addCity(item.location));
+    (allData.homestays || []).forEach((item) => addCity(item.location));
+    (allData.holidays || []).forEach((item) => addCity(item.destination));
+    (allData.cabs || []).forEach((item) => addCity(item.city));
+
     return Array.from(cities).map((city) => ({ value: city, label: city }));
-  }, [flight, hotel]);
+  }, [allData]);
 
   if (loading) {
     return <Loader />;
   }
+
   const handlesearch = () => {
-    if (bookingtype === "flights") {
-      const results = flight.filter(
-        (FLIGHT) =>
-          FLIGHT.from.toLowerCase() === from.toLowerCase() &&
-          FLIGHT.to.toLowerCase() === to.toLowerCase()
+    const data = allData[bookingtype] || [];
+    let results = data;
+
+    if (bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") {
+      results = data.filter(
+        (item: any) =>
+          item.from?.toLowerCase() === from.toLowerCase() &&
+          item.to?.toLowerCase() === to.toLowerCase()
       );
-      setsearchresult(results);
     } else if (bookingtype === "hotels" || bookingtype === "homestays") {
-      const results = hotel.filter(
-        (hotel) => hotel.location.toLowerCase() === to.toLowerCase()
+      results = data.filter(
+        (item: any) => item.location?.toLowerCase() === to.toLowerCase()
       );
-      setsearchresult(results);
+    } else if (bookingtype === "holidays") {
+      results = data.filter(
+        (item: any) =>
+          item.destination?.toLowerCase() === to.toLowerCase() ||
+          item.packageName?.toLowerCase().includes(to.toLowerCase())
+      );
+    } else if (bookingtype === "cabs") {
+      results = data.filter(
+        (item: any) => item.city?.toLowerCase() === from.toLowerCase()
+      );
+    } else if (bookingtype === "forex") {
+      results = data.filter(
+        (item: any) => item.currency?.toLowerCase() === currency.toLowerCase()
+      );
+    } else if (bookingtype === "insurance") {
+      results = data.filter(
+        (item: any) =>
+          item.planName?.toLowerCase().includes(policyType.toLowerCase()) ||
+          item.coverage?.toLowerCase().includes(policyType.toLowerCase())
+      );
     }
+
+    setsearchresult(results);
   };
+
   const formatDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
@@ -322,36 +421,44 @@ export default function Home() {
     const date = new Date(dateString);
     return date.toLocaleString("en-US", options);
   };
-  const handlebooknow = (id: any) => {
+
+  const getEntityId = (item: any) => {
+    return item.id || item._id || item._id?.$oid || item._id?.toString();
+  };
+
+  const handlebooknow = (item: any) => {
+    const id = getEntityId(item);
+    if (!id) {
+      alert("Unable to find an identifier for this item.");
+      return;
+    }
+
     if (bookingtype === "flights") {
       router.push(`/book-flight/${id}`);
     } else if (bookingtype === "hotels" || bookingtype === "homestays") {
       router.push(`/book-hotel/${id}`);
     } else {
-      // fallback to hotel booking for other types
-      router.push(`/book-hotel/${id}`);
+      alert(`Booking page not available for ${bookingtype} yet.`);
     }
   };
 
   const handleOfferBook = (offerTitle: string) => {
     const titleLower = offerTitle.toLowerCase();
     if (titleLower.includes("flight")) {
-      router.push(`/book-flight/${flightD[0].id}`);
+      const item = allData.flights[0];
+      if (item) {
+        handlebooknow(item);
+        return;
+      }
     } else if (titleLower.includes("hotel")) {
-      router.push(`/book-hotel/${hotelData[0].id}`);
-    } else if (titleLower.includes("train") || titleLower.includes("rajdhani")) {
-      alert("Train booking feature coming soon!");
-    } else if (titleLower.includes("bus")) {
-      alert("Bus booking feature coming soon!");
-    } else if (titleLower.includes("cab")) {
-      alert("Cab booking feature coming soon!");
-    } else if (titleLower.includes("forex") || titleLower.includes("currency")) {
-      alert("Forex booking feature coming soon!");
-    } else if (titleLower.includes("insurance") || titleLower.includes("travel")) {
-      alert("Insurance booking feature coming soon!");
-    } else {
-      router.push(`/book-flight/${flightD[0].id}`);
+      const item = allData.hotels[0];
+      if (item) {
+        handlebooknow(item);
+        return;
+      }
     }
+
+    alert("This booking path is not available yet. Please use the search results.");
   };
 
   return (
@@ -946,47 +1053,121 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchresults.map((result) => (
                   <div
-                    key={result.id}
+                    key={getEntityId(result)}
                     className="bg-white rounded-lg shadow p-4 border border-gray-200"
                   >
-                    {bookingtype === "flights" ? (
+                    {(bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") && (
                       <>
                         <p className="font-semibold text-lg">
-                          Flight Name: {result.flightName}
+                          {bookingtype === "flights"
+                            ? `Flight: ${result.flightName || result.flight}`
+                            : bookingtype === "trains"
+                            ? `Train: ${result.trainName}`
+                            : `Bus: ${result.busName}`}
                         </p>
                         <h3 className="font-semibold text-lg">
                           {result.from} to {result.to}
                         </h3>
                         <p className="text-gray-600">
-                          Departure Time: {formatDate(result.departureTime)}
+                          Departure Time: {formatDate(result.departureTime || result.departureTime)}
                         </p>
                         <p className="text-gray-600">
-                          Arrival Time: {formatDate(result.arrivalTime)}
+                          Arrival Time: {formatDate(result.arrivalTime || result.arrivalTime)}
                         </p>
                         <p className="text-lg font-bold mt-2">
                           ₹{result.price}
                         </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Available Seats: {result.availableSeats || result.availableSeats || result.availableSeats}
+                        </p>
                         <Button
                           className="w-full mt-4"
-                          onClick={() => handlebooknow(result.id)}
+                          onClick={() => handlebooknow(result)}
                         >
                           Book Now
                         </Button>
                       </>
-                    ) : (
+                    )}
+                    {(bookingtype === "hotels" || bookingtype === "homestays") && (
                       <>
                         <h3 className="font-semibold text-lg">
-                          {result.hotelName}
+                          {result.hotelName || result.name || result.title}
                         </h3>
                         <p className="text-gray-600">City: {result.location}</p>
                         <p className="text-lg font-bold mt-2">
-                          ₹{result.pricePerNight} per night
+                          ₹{result.pricePerNight || result.price} per night
                         </p>
                         <Button
                           className="w-full mt-4"
-                          onClick={() => handlebooknow(result.id)}
+                          onClick={() => handlebooknow(result)}
                         >
                           Book Now
+                        </Button>
+                      </>
+                    )}
+                    {bookingtype === "holidays" && (
+                      <>
+                        <h3 className="font-semibold text-lg">
+                          {result.packageName}
+                        </h3>
+                        <p className="text-gray-600">Destination: {result.destination}</p>
+                        <p className="text-gray-600">Duration: {result.duration}</p>
+                        <p className="text-lg font-bold mt-2">₹{result.price}</p>
+                        <Button
+                          className="w-full mt-4"
+                          onClick={() => handlebooknow(result)}
+                        >
+                          View Details
+                        </Button>
+                      </>
+                    )}
+                    {bookingtype === "cabs" && (
+                      <>
+                        <h3 className="font-semibold text-lg">
+                          {result.cabType}
+                        </h3>
+                        <p className="text-gray-600">City: {result.city}</p>
+                        <p className="text-gray-600">
+                          Price per km: ₹{result.pricePerKm}
+                        </p>
+                        <p className="text-gray-600">
+                          Available: {result.available ? "Yes" : "No"}
+                        </p>
+                        <Button
+                          className="w-full mt-4"
+                          onClick={() => handlebooknow(result)}
+                        >
+                          Book Now
+                        </Button>
+                      </>
+                    )}
+                    {bookingtype === "forex" && (
+                      <>
+                        <h3 className="font-semibold text-lg">
+                          Currency: {result.currency}
+                        </h3>
+                        <p className="text-gray-600">Buy Rate: {result.buyRate}</p>
+                        <p className="text-gray-600">Sell Rate: {result.sellRate}</p>
+                        <Button
+                          className="w-full mt-4"
+                          onClick={() => handlebooknow(result)}
+                        >
+                          Refresh Rate
+                        </Button>
+                      </>
+                    )}
+                    {bookingtype === "insurance" && (
+                      <>
+                        <h3 className="font-semibold text-lg">
+                          {result.planName}
+                        </h3>
+                        <p className="text-gray-600">Coverage: {result.coverage}</p>
+                        <p className="text-gray-600">Premium: ₹{result.premium}</p>
+                        <Button
+                          className="w-full mt-4"
+                          onClick={() => handlebooknow(result)}
+                        >
+                          Get Quote
                         </Button>
                       </>
                     )}

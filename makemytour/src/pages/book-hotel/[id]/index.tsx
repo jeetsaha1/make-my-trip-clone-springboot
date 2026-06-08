@@ -55,7 +55,9 @@ const BookHotelPage = () => {
       try {
         const data = await gethotel();
         const filteredData = data.filter(
-          (hotel: any) => hotel.id?.toString() === hotelId?.toString()
+          (hotel: any) =>
+            hotel.id?.toString() === hotelId?.toString() ||
+            hotel._id?.toString() === hotelId?.toString()
         );
         sethotels(filteredData);
       } catch (error) {

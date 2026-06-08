@@ -57,7 +57,9 @@ const BookFlightPage = () => {
       try {
         const data = await getflight();
         const filteredData = data.filter(
-          (flight: any) => flight.id?.toString() === flightId?.toString()
+          (flight: any) =>
+            flight.id?.toString() === flightId?.toString() ||
+            flight._id?.toString() === flightId?.toString()
         );
         setFlights(filteredData);
         console.log(filteredData);

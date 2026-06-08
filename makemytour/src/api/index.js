@@ -2,6 +2,16 @@ import axios from "axios";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://make-my-trip-clone-springboot-2tzx.onrender.com";
 
+export const getCollection = async (collection) => {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/collection/${collection}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error fetching collection ${collection}:`, error);
+    return [];
+  }
+};
+
 export const login = async (email, password) => {
   try {
     const url = `${BACKEND_URL}/user/login?email=${email}&password=${password}`;
@@ -66,13 +76,7 @@ export const editprofile = async (
   } catch (error) {}
 };
 export const getflight = async () => {
-  try {
-    const res = await axios.get(`${BACKEND_URL}/flight`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  return getCollection("flight");
 };
 
 export const addflight = async (
@@ -129,13 +133,7 @@ export const editflight = async (
 };
 
 export const gethotel = async () => {
-  try {
-    const res = await axios.get(`${BACKEND_URL}/hotel`);
-    return res.data;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  return getCollection("hotels");
 };
 
 export const addhotel = async (
