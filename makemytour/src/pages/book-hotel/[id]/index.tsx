@@ -43,8 +43,14 @@ import { setUser } from "@/store";
 const BookHotelPage = () => {
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
-  const { id } = router.query; // Access the hotel ID from the URL
+  const { id, checkin, checkout } = router.query as {
+    id?: string | string[];
+    checkin?: string | string[];
+    checkout?: string | string[];
+  };
   const hotelId = Array.isArray(id) ? id[0] : id;
+  const checkInDate = Array.isArray(checkin) ? checkin[0] : checkin || "";
+  const checkOutDate = Array.isArray(checkout) ? checkout[0] : checkout || "";
   const [hotels, sethotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
   const user = useSelector((state: any) => state.user.user);
@@ -75,6 +81,18 @@ const BookHotelPage = () => {
     return <Loader />;
   }
   const hotel = hotels[0];
+  const formatShortDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   if (!hotel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
@@ -185,6 +203,33 @@ const BookHotelPage = () => {
             </Label>
             <Input id="location" value={hotel.location} readOnly />
           </div>
+
+          {/* Check-In Date */}
+          <div className="space-y-2">
+            <Label htmlFor="checkin" className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Check-In
+            </Label>
+            <Input
+              id="checkin"
+              value={checkInDate ? formatShortDate(checkInDate) : "Not selected"}
+              readOnly
+            />
+          </div>
+
+          {/* Check-Out Date */}
+          <div className="space-y-2">
+            <Label htmlFor="checkout" className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Check-Out
+            </Label>
+            <Input
+              id="checkout"
+              value={checkOutDate ? formatShortDate(checkOutDate) : "Not selected"}
+              readOnly
+            />
+          </div>
+
           {/* Price Per Night */}
           <div className="space-y-2">
             <Label htmlFor="pricePerNight" className="flex items-center">

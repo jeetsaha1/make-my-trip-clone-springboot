@@ -774,9 +774,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
                     placeholder="Start Date"
-                    value={date}
+                    value={holidayStartDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setHolidayStartDate(e.target.value)
                     }
                     subtitle="Select start date"
                     type="date"
@@ -892,9 +892,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
                     placeholder="Travel Date"
-                    value={date}
+                    value={busDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setBusDate(e.target.value)
                     }
                     subtitle="Select date"
                     type="date"
@@ -945,9 +945,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
                     placeholder="Travel Date"
-                    value={date}
+                    value={cabDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setCabDate(e.target.value)
                     }
                     subtitle="Select date"
                     type="date"
@@ -1082,9 +1082,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
                     placeholder="Start Date"
-                    value={date}
+                    value={insuranceStartDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setInsuranceStartDate(e.target.value)
                     }
                     subtitle="Select start date"
                     type="date"
