@@ -26,9 +26,15 @@ export default function Home() {
   const [bookingtype, setbookingtype] = useState("flights");
   const [from, setfrom] = useState("");
   const [to, setto] = useState("");
-  const [date, setdate] = useState("");
+  const [departureDate, setDepartureDate] = useState("");
+  const [returnDate, setReturnDate] = useState("");
   const [checkin, setCheckin] = useState("");
   const [checkout, setCheckout] = useState("");
+  const [holidayStartDate, setHolidayStartDate] = useState("");
+  const [trainDate, setTrainDate] = useState("");
+  const [busDate, setBusDate] = useState("");
+  const [cabDate, setCabDate] = useState("");
+  const [insuranceStartDate, setInsuranceStartDate] = useState("");
   const [travelers, settravelers] = useState(1);
   const [searchresults, setsearchresult] = useState<any[]>([]);
   const [hotel, sethotel] = useState<any[]>([]);
@@ -368,17 +374,34 @@ export default function Home() {
     return <Loader />;
   }
 
+  const normalizeDate = (value: string) => {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toISOString().slice(0, 10);
+  };
+
   const handlesearch = () => {
     sethasSearched(true);
     const data = allData[bookingtype] || [];
     let results = data;
 
     if (bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") {
-      results = data.filter(
-        (item: any) =>
+      results = data.filter((item: any) => {
+        const itemDate = normalizeDate(
+          item.departureTime || item.date || item.travelDate || ""
+        );
+        const departureMatch =
+          !departureDate || normalizeDate(departureDate) === itemDate;
+
+        return (
           item.from?.toLowerCase() === from.toLowerCase() &&
-          item.to?.toLowerCase() === to.toLowerCase()
-      );
+          item.to?.toLowerCase() === to.toLowerCase() &&
+          departureMatch
+        );
+      });
     } else if (bookingtype === "hotels" || bookingtype === "homestays") {
       results = data.filter(
         (item: any) => item.location?.toLowerCase() === to.toLowerCase()
@@ -421,7 +444,31 @@ export default function Home() {
   };
 
   const getEntityId = (item: any) => {
-    return item.id || item._id || item._id?.$oid || item._id?.toString();
+    if (!item) {
+      return "";
+    }
+
+    if (typeof item.id === "string" || typeof item.id === "number") {
+      return String(item.id);
+    }
+
+    if (typeof item._id === "string") {
+      return item._id;
+    }
+
+    if (item._id && typeof item._id === "object") {
+      if (typeof item._id.$oid === "string") {
+        return item._id.$oid;
+      }
+      if (typeof item._id.toString === "function") {
+        const idString = item._id.toString();
+        if (idString !== "[object Object]") {
+          return idString;
+        }
+      }
+    }
+
+    return "";
   };
 
   const handlebooknow = (item: any) => {
@@ -432,9 +479,15 @@ export default function Home() {
     }
 
     if (bookingtype === "flights") {
-      router.push(`/book-flight/${id}`);
+      const query: Record<string, string> = {};
+      if (departureDate) query.departureDate = departureDate;
+      if (returnDate) query.returnDate = returnDate;
+      router.push({ pathname: `/book-flight/${id}`, query });
     } else if (bookingtype === "hotels" || bookingtype === "homestays") {
-      router.push(`/book-hotel/${id}`);
+      const query: Record<string, string> = {};
+      if (checkin) query.checkin = checkin;
+      if (checkout) query.checkout = checkout;
+      router.push({ pathname: `/book-hotel/${id}`, query });
     } else {
       alert(`Booking page not available for ${bookingtype} yet.`);
     }
@@ -555,12 +608,24 @@ export default function Home() {
                 <div className="col-span-1">
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
-                    placeholder="Date"
-                    value={date}
+                    placeholder="Departure Date"
+                    value={departureDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setDepartureDate(e.target.value)
                     }
-                    subtitle="Select a date"
+                    subtitle="Select departure date"
+                    type="date"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SearchInput
+                    icon={<Calendar className="text-gray-400" />}
+                    placeholder="Return Date"
+                    value={returnDate}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setReturnDate(e.target.value)
+                    }
+                    subtitle="Select return date"
                     type="date"
                   />
                 </div>
@@ -774,9 +839,9 @@ export default function Home() {
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
                     placeholder="Journey Date"
-                    value={date}
+                    value={trainDate}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setdate(e.target.value)
+                      setTrainDate(e.target.value)
                     }
                     subtitle="Select date"
                     type="date"
@@ -1069,10 +1134,10 @@ export default function Home() {
                           {result.from} to {result.to}
                         </h3>
                         <p className="text-gray-600">
-                          Departure Time: {formatDate(result.departureTime || result.departureTime)}
+                          Departure Time: {formatDate(result.departureTime || result.date || result.travelDate || "")}
                         </p>
                         <p className="text-gray-600">
-                          Arrival Time: {formatDate(result.arrivalTime || result.arrivalTime)}
+                          Arrival Time: {formatDate(result.arrivalTime || result.date || result.travelDate || "")}
                         </p>
                         <p className="text-lg font-bold mt-2">
                           ₹{result.price}

@@ -44,8 +44,18 @@ import ReviewSection from "@/components/ReviewSection";
 import { setUser } from "@/store";
 const BookFlightPage = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, departureDate, returnDate } = router.query as {
+    id?: string | string[];
+    departureDate?: string | string[];
+    returnDate?: string | string[];
+  };
   const flightId = Array.isArray(id) ? id[0] : id;
+  const flightDepartureDate = Array.isArray(departureDate)
+    ? departureDate[0]
+    : departureDate || "";
+  const flightReturnDate = Array.isArray(returnDate)
+    ? returnDate[0]
+    : returnDate || "";
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -157,6 +167,18 @@ const BookFlightPage = () => {
     return date.toLocaleString("en-US", options);
   };
 
+  const formatShortDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     const value = Number.parseInt(e.target.value);
@@ -223,6 +245,32 @@ const BookFlightPage = () => {
               To
             </Label>
             <Input id="to" value={flight?.to} readOnly />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="departureDate" className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Departure Date
+            </Label>
+            <Input
+              id="departureDate"
+              value={
+                flightDepartureDate
+                  ? formatShortDate(flightDepartureDate)
+                  : formatShortDate(flight.departureTime)
+              }
+              readOnly
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="returnDate" className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              Return Date
+            </Label>
+            <Input
+              id="returnDate"
+              value={flightReturnDate ? formatShortDate(flightReturnDate) : "One-way"}
+              readOnly
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="departureTime" className="flex items-center">
@@ -329,7 +377,17 @@ const BookFlightPage = () => {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span>{formatDate(flight.departureTime)}</span>
+                    <span>
+                      {flightDepartureDate
+                        ? formatShortDate(flightDepartureDate)
+                        : formatDate(flight.departureTime)}
+                    </span>
+                    {flightReturnDate && (
+                      <>
+                        <span className="mx-2">•</span>
+                        <span>Return: {formatShortDate(flightReturnDate)}</span>
+                      </>
+                    )}
                     <span className="mx-2">•</span>
                     <Clock className="w-4 h-4 mr-2" />
                     <span>Non Stop - {flightDetails.duration}</span>
