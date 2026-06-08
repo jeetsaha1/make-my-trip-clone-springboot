@@ -32,13 +32,14 @@ export default function Home() {
   const [travelers, settravelers] = useState(1);
   const [searchresults, setsearchresult] = useState<any[]>([]);
   const [hotel, sethotel] = useState<any[]>([]);
-  const [loading, setloading] = useState(true);
+  const [loading, setloading] = useState(false);
   const [flight, setflight] = useState<any[]>([]);
   const [guests, setguests] = useState(1);
   const [currency, setcurrency] = useState("USD");
   const [amount, setamount] = useState("");
   const [policyType, setpolicyType] = useState("Travel");
   const [coverage, setcoverage] = useState("1000000");
+  const [hasSearched, sethasSearched] = useState(false);
   const user = useSelector((state: any) => state.user.user);
   const router = useRouter();
   const flightD = [
@@ -287,56 +288,52 @@ export default function Home() {
     insurance: [],
   });
 
+  const fetchCollectionData = async () => {
+    try {
+      setloading(true);
+      const [
+        flightData,
+        hotelData,
+        homestayData,
+        holidayData,
+        trainData,
+        busData,
+        cabData,
+        forexData,
+        insuranceData,
+      ] = await Promise.all([
+        getCollection(collectionMap.flights),
+        getCollection(collectionMap.hotels),
+        getCollection(collectionMap.homestays),
+        getCollection(collectionMap.holidays),
+        getCollection(collectionMap.trains),
+        getCollection(collectionMap.buses),
+        getCollection(collectionMap.cabs),
+        getCollection(collectionMap.forex),
+        getCollection(collectionMap.insurance),
+      ]);
+
+      setAllData({
+        flights: flightData,
+        hotels: hotelData,
+        homestays: homestayData,
+        holidays: holidayData,
+        trains: trainData,
+        buses: busData,
+        cabs: cabData,
+        forex: forexData,
+        insurance: insuranceData,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setloading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchdata = async () => {
-      try {
-        const [
-          flightData,
-          hotelData,
-          homestayData,
-          holidayData,
-          trainData,
-          busData,
-          cabData,
-          forexData,
-          insuranceData,
-        ] = await Promise.all([
-          getCollection(collectionMap.flights),
-          getCollection(collectionMap.hotels),
-          getCollection(collectionMap.homestays),
-          getCollection(collectionMap.holidays),
-          getCollection(collectionMap.trains),
-          getCollection(collectionMap.buses),
-          getCollection(collectionMap.cabs),
-          getCollection(collectionMap.forex),
-          getCollection(collectionMap.insurance),
-        ]);
-
-        setAllData({
-          flights: flightData,
-          hotels: hotelData,
-          homestays: homestayData,
-          holidays: holidayData,
-          trains: trainData,
-          buses: busData,
-          cabs: cabData,
-          forex: forexData,
-          insurance: insuranceData,
-        });
-        setsearchresult(flightData || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setloading(false);
-      }
-    };
-
-    fetchdata();
+    fetchCollectionData();
   }, [user]);
-
-  useEffect(() => {
-    setsearchresult(allData[bookingtype] || []);
-  }, [bookingtype, allData]);
 
   const cityOptions = useMemo(() => {
     const cities = new Set<string>();
@@ -372,6 +369,7 @@ export default function Home() {
   }
 
   const handlesearch = () => {
+    sethasSearched(true);
     const data = allData[bookingtype] || [];
     let results = data;
 
@@ -1046,9 +1044,11 @@ export default function Home() {
             )}
           </div>
           <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-4 text-white">
-              Search Results
-            </h2>
+            {hasSearched ? (
+              <>
+                <h2 className="text-xl font-semibold mb-4 text-white">
+                  Search Results
+                </h2>
             {searchresults.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {searchresults.map((result) => (
@@ -1179,22 +1179,30 @@ export default function Home() {
                 No {bookingtype} available for the selected criteria.
               </p>
             )}
+              </>
+            ) : (
+              <p className="text-center text-gray-400 py-8">
+                Please fill in your search criteria and click the search button to see available options.
+              </p>
+            )}
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4">
           {/* Offers Section */}
-          <section className="my-16">
-            <h2 className="text-2xl font-bold mb-8 text-white">Best Offers</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {offers.map((offer: any, index: number) => (
-                <OfferCard
-                  key={index}
-                  {...offer}
-                  onClick={() => handleOfferBook(offer.title)}
-                />
-              ))}
-            </div>
-          </section>
+          {hasSearched && (
+            <section className="my-16">
+              <h2 className="text-2xl font-bold mb-8 text-white">Best Offers</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {offers.map((offer: any, index: number) => (
+                  <OfferCard
+                    key={index}
+                    {...offer}
+                    onClick={() => handleOfferBook(offer.title)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Collections Section */}
           <section className="my-16">
