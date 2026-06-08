@@ -167,15 +167,18 @@ const BookFlightPage = () => {
     return date.toLocaleString("en-US", options);
   };
 
-  const formatShortDate = (dateString: string): string => {
+  const formatDateTime = (dateString: string): string => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) {
-      return dateString;
+      return dateString || "Invalid Date";
     }
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -279,7 +282,7 @@ const BookFlightPage = () => {
             </Label>
             <Input
               id="departureTime"
-              value={new Date(flight.departureTime).toLocaleString()}
+              value={formatDateTime(flight.departureTime)}
               readOnly
             />
           </div>
@@ -290,7 +293,7 @@ const BookFlightPage = () => {
             </Label>
             <Input
               id="arrivalTime"
-              value={new Date(flight.arrivalTime).toLocaleString()}
+              value={formatDateTime(flight.arrivalTime)}
               readOnly
             />
           </div>
