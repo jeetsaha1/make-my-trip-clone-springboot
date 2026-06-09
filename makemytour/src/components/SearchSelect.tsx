@@ -21,8 +21,13 @@ export function SearchSelect({ options, placeholder, value, onChange, icon, subt
     };
   }, []);
 
+  useEffect(() => {
+    setSearchTerm(value || "");
+  }, [value]);
+
+  const visibleSearchTerm = searchTerm || "";
   const filteredOptions = options.filter((option:any) =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    option.label.toLowerCase().includes(visibleSearchTerm.toLowerCase())
   );
 
   return (
@@ -37,10 +42,12 @@ export function SearchSelect({ options, placeholder, value, onChange, icon, subt
             <div className="text-sm text-gray-500 truncate">{placeholder}</div>
             <Input
               type="text"
-              value={value || searchTerm}
+              value={value || ""}
               onChange={(e) => {
-                setSearchTerm(e.target.value);
-                onChange('');
+                const nextValue = e.target.value;
+                setSearchTerm(nextValue);
+                onChange(nextValue);
+                setIsOpen(true);
               }}
               className="font-semibold w-full bg-transparent border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
               placeholder={placeholder}
@@ -59,7 +66,7 @@ export function SearchSelect({ options, placeholder, value, onChange, icon, subt
                 variant="ghost"
                 onClick={() => {
                   onChange(option.value);
-                  setSearchTerm('');
+                  setSearchTerm(option.value);
                   setIsOpen(false);
                 }}
               >

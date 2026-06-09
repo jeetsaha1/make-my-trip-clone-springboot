@@ -270,16 +270,16 @@ export default function Home() {
     },
   ];
 
-  const collectionMap: Record<string, string> = {
-    flights: "flight",
-    hotels: "hotels",
-    homestays: "homestays",
-    holidays: "holidaypackages",
-    trains: "trains",
-    buses: "buses",
-    cabs: "cabs",
-    forex: "forex",
-    insurance: "insurance",
+  const collectionMap: Record<string, string[]> = {
+    flights: ["flight", "flights"],
+    hotels: ["hotels", "hotel"],
+    homestays: ["homestays", "homestay"],
+    holidays: ["holidaypackages", "holidays", "holiday"],
+    trains: ["trains", "train"],
+    buses: ["buses", "bus"],
+    cabs: ["cabs", "cab"],
+    forex: ["forex"],
+    insurance: ["insurance"],
   };
 
   const [allData, setAllData] = useState<Record<string, any[]>>({
@@ -293,6 +293,16 @@ export default function Home() {
     forex: [],
     insurance: [],
   });
+
+  const fetchCollectionByCandidates = async (collections: string[]) => {
+    for (const collection of collections) {
+      const data = await getCollection(collection);
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+    return [];
+  };
 
   const fetchCollectionData = async () => {
     try {
@@ -308,15 +318,15 @@ export default function Home() {
         forexData,
         insuranceData,
       ] = await Promise.all([
-        getCollection(collectionMap.flights),
-        getCollection(collectionMap.hotels),
-        getCollection(collectionMap.homestays),
-        getCollection(collectionMap.holidays),
-        getCollection(collectionMap.trains),
-        getCollection(collectionMap.buses),
-        getCollection(collectionMap.cabs),
-        getCollection(collectionMap.forex),
-        getCollection(collectionMap.insurance),
+        fetchCollectionByCandidates(collectionMap.flights),
+        fetchCollectionByCandidates(collectionMap.hotels),
+        fetchCollectionByCandidates(collectionMap.homestays),
+        fetchCollectionByCandidates(collectionMap.holidays),
+        fetchCollectionByCandidates(collectionMap.trains),
+        fetchCollectionByCandidates(collectionMap.buses),
+        fetchCollectionByCandidates(collectionMap.cabs),
+        fetchCollectionByCandidates(collectionMap.forex),
+        fetchCollectionByCandidates(collectionMap.insurance),
       ]);
 
       setAllData({
@@ -374,6 +384,18 @@ export default function Home() {
     return <Loader />;
   }
 
+  const normalizeText = (value: any) =>
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  const textMatches = (actual: any, expected: string) => {
+    const actualText = normalizeText(actual);
+    const expectedText = normalizeText(expected);
+    if (!expectedText) return true;
+    return actualText === expectedText || actualText.includes(expectedText);
+  };
+
   const normalizeDate = (value: string) => {
     if (!value) return "";
     const parsed = new Date(value);
@@ -383,6 +405,50 @@ export default function Home() {
     return parsed.toISOString().slice(0, 10);
   };
 
+  const selectedTravelDate = () => {
+    if (bookingtype === "trains") return trainDate;
+    if (bookingtype === "buses") return busDate;
+    if (bookingtype === "cabs") return cabDate;
+    if (bookingtype === "holidays") return holidayStartDate;
+    return departureDate;
+  };
+
+  const getItemDate = (item: any) =>
+    item.departureTime ||
+    item.travelDate ||
+    item.journeyDate ||
+    item.date ||
+    item.startDate ||
+    "";
+
+  const dateMatches = (item: any, expectedDate: string) => {
+    if (!expectedDate) return true;
+    const itemDate = normalizeDate(getItemDate(item));
+    return !itemDate || normalizeDate(expectedDate) === itemDate;
+  };
+
+  const sortPreferredResults = (results: any[]) => {
+    const fromText = normalizeText(from);
+    const toText = normalizeText(to);
+
+    return [...results].sort((a: any, b: any) => {
+      const score = (item: any) => {
+        let value = 0;
+        if (fromText && normalizeText(item.from || item.city) === fromText) value += 2;
+        if (toText && normalizeText(item.to || item.location || item.destination) === toText) value += 2;
+        if (Number(item.price || item.pricePerNight || item.pricePerKm)) value += 1;
+        return value;
+      };
+
+      const scoreDiff = score(b) - score(a);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      const aPrice = Number(a.price || a.pricePerNight || a.pricePerKm || Number.MAX_SAFE_INTEGER);
+      const bPrice = Number(b.price || b.pricePerNight || b.pricePerKm || Number.MAX_SAFE_INTEGER);
+      return aPrice - bPrice;
+    });
+  };
+
   const handlesearch = () => {
     sethasSearched(true);
     const data = allData[bookingtype] || [];
@@ -390,48 +456,53 @@ export default function Home() {
 
     if (bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") {
       results = data.filter((item: any) => {
-        const itemDate = normalizeDate(
-          item.departureTime || item.date || item.travelDate || ""
-        );
-        const departureMatch =
-          !departureDate || normalizeDate(departureDate) === itemDate;
-
         return (
-          item.from?.toLowerCase() === from.toLowerCase() &&
-          item.to?.toLowerCase() === to.toLowerCase() &&
-          departureMatch
+          textMatches(item.from, from) &&
+          textMatches(item.to, to) &&
+          dateMatches(item, selectedTravelDate())
         );
       });
     } else if (bookingtype === "hotels" || bookingtype === "homestays") {
       results = data.filter(
-        (item: any) => item.location?.toLowerCase() === to.toLowerCase()
+        (item: any) =>
+          textMatches(item.location || item.city, to) ||
+          textMatches(item.hotelName || item.name || item.title, to)
       );
     } else if (bookingtype === "holidays") {
       results = data.filter(
         (item: any) =>
-          item.destination?.toLowerCase() === to.toLowerCase() ||
-          item.packageName?.toLowerCase().includes(to.toLowerCase())
+          (textMatches(item.destination, to) ||
+            textMatches(item.packageName || item.name || item.title, to)) &&
+          dateMatches(item, holidayStartDate)
       );
     } else if (bookingtype === "cabs") {
       results = data.filter(
-        (item: any) => item.city?.toLowerCase() === from.toLowerCase()
+        (item: any) =>
+          textMatches(item.city || item.from || item.pickupLocation, from) &&
+          textMatches(item.to || item.dropLocation || item.destination, to) &&
+          dateMatches(item, cabDate)
       );
     } else if (bookingtype === "forex") {
       results = data.filter(
-        (item: any) => item.currency?.toLowerCase() === currency.toLowerCase()
+        (item: any) => textMatches(item.currency, currency)
       );
     } else if (bookingtype === "insurance") {
       results = data.filter(
         (item: any) =>
-          item.planName?.toLowerCase().includes(policyType.toLowerCase()) ||
-          item.coverage?.toLowerCase().includes(policyType.toLowerCase())
+          textMatches(item.planName, policyType) ||
+          textMatches(item.coverage, policyType)
       );
     }
 
-    setsearchresult(results);
+    setsearchresult(sortPreferredResults(results));
   };
 
   const formatDate = (dateString: string): string => {
+    if (!dateString) return "Not specified";
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
     const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "long",
@@ -439,7 +510,6 @@ export default function Home() {
       hour: "2-digit",
       minute: "2-digit",
     };
-    const date = new Date(dateString);
     return date.toLocaleString("en-US", options);
   };
 
