@@ -167,6 +167,18 @@ const BookFlightPage = () => {
     return date.toLocaleString("en-US", options);
   };
 
+  const formatShortDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const formatDateTime = (dateString: string): string => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);

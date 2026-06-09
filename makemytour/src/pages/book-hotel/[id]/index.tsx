@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Camera,
   Image,
+  Calendar,
   CreditCard,
   Ticket,
   Plane,

@@ -135,17 +135,17 @@ export default function Home() {
         {
           title: "Luxury Trains",
           description: "Experience premium train journeys",
-          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=800",
         },
         {
           title: "Budget Trains",
           description: "Affordable train travel across India",
-          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800",
         },
         {
           title: "Rajdhani Express",
           description: "Swift connections between major cities",
-          imageUrl: "https://images.unsplash.com/photo-1474161855733-7671a73ce54d?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1527295110-5145f6b148d0?auto=format&fit=crop&w=800",
         },
       ],
       buses: [
@@ -169,17 +169,17 @@ export default function Home() {
         {
           title: "Outstation Cabs",
           description: "Reliable cabs for outstation trips",
-          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=800",
         },
         {
           title: "Airport Transfers",
           description: "Hassle-free airport pickups",
-          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=800",
         },
         {
           title: "Hourly Rentals",
           description: "Rent cabs by the hour for city travel",
-          imageUrl: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800",
+          imageUrl: "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=800",
         },
       ],
       forex: [
@@ -1304,10 +1304,39 @@ export default function Home() {
     </div>
   );
 }
+const TravelImage = ({ src, alt, className = "" }: any) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed || !src) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-white ${className}`}
+        role="img"
+        aria-label={alt}
+      >
+        <div className="text-center px-4">
+          <Plane className="w-10 h-10 mx-auto mb-2 opacity-90" />
+          <span className="text-sm font-semibold">{alt}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 const OfferCard = ({ title, description, imageUrl, onClick }: any) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <img src={imageUrl} alt={title} className="w-full h-48 object-cover" />
+      <TravelImage src={imageUrl} alt={title} className="w-full h-48 object-cover" />
       <div className="p-4">
         <h3 className="font-semibold text-lg mb-2">{title}</h3>
         <p className="text-gray-600 text-sm">{description}</p>
@@ -1325,7 +1354,7 @@ const OfferCard = ({ title, description, imageUrl, onClick }: any) => {
 const CollectionCard = ({ title, imageUrl, tag }: any) => {
   return (
     <div className="relative group cursor-pointer overflow-hidden rounded-lg">
-      <img
+      <TravelImage
         src={imageUrl}
         alt={title}
         className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
@@ -1379,7 +1408,7 @@ const DownloadApp = () => {
 const WonderCard = ({ title, imageUrl }: any) => {
   return (
     <div className="relative group cursor-pointer overflow-hidden rounded-lg">
-      <img
+      <TravelImage
         src={imageUrl}
         alt={title}
         className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
