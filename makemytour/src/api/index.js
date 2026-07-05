@@ -123,6 +123,19 @@ export const getflight = async () => {
   return getCollection("flight");
 };
 
+export const getFlightById = async (id) => {
+  try {
+    const url = `${BACKEND_URL}/flight/${encodeURIComponent(id)}`;
+    console.log("API request", { method: "GET", url });
+    const res = await axios.get(url);
+    console.log("API response", { url, data: res.data });
+    return res.data;
+  } catch (error) {
+    console.error(`Error fetching flight by ID ${id}:`, { url: `${BACKEND_URL}/flight/${encodeURIComponent(id)}`, error });
+    return null;
+  }
+};
+
 export const addflight = async (
   flightName,
   from,
@@ -178,6 +191,19 @@ export const editflight = async (
 
 export const gethotel = async () => {
   return getCollection("hotels");
+};
+
+export const getHotelById = async (id) => {
+  try {
+    const url = `${BACKEND_URL}/hotel/${encodeURIComponent(id)}`;
+    console.log("API request", { method: "GET", url });
+    const res = await axios.get(url);
+    console.log("API response", { url, data: res.data });
+    return res.data;
+  } catch (error) {
+    console.error(`Error fetching hotel by ID ${id}:`, { url: `${BACKEND_URL}/hotel/${encodeURIComponent(id)}`, error });
+    return null;
+  }
 };
 
 export const addhotel = async (

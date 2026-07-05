@@ -17,7 +17,7 @@ import {
   Home,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { gethotel, handlehotelbooking } from "@/api";
+import { getHotelById, handlehotelbooking } from "@/api";
 interface Hotel {
   id: string; // Unique identifier for the hotel
   hotelName: string; // Name of the hotel
@@ -82,21 +82,18 @@ const BookHotelPage = () => {
 
   useEffect(() => {
     if (!hotelId) return;
-    const fetchhotels = async () => {
+    const fetchHotel = async () => {
       try {
-        const data = await gethotel();
-        const filteredData = data.filter((hotel: any) => {
-          const documentId = getDocumentId(hotel);
-          return documentId === String(hotelId);
-        });
-        sethotels(filteredData);
+        const data = await getHotelById(hotelId);
+        sethotels(data ? [data] : []);
       } catch (error) {
-        console.error("Error fetching hotels:", error);
+        console.error("Error fetching hotel by ID:", error);
+        sethotels([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchhotels();
+    fetchHotel();
   }, [hotelId]);
 
   if (loading) {

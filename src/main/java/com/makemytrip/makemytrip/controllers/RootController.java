@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,14 +44,14 @@ public class RootController {
     }
 
     @GetMapping("/hotel")
-    public ResponseEntity<List<Hotel>> getallhotel(){
-        List<Hotel> hotels=hotelRepository.findAll();
+    public ResponseEntity<List<Hotel>> getAllHotels() {
+        List<Hotel> hotels = hotelRepository.findAll();
         return ResponseEntity.ok(hotels);
     }
 
     @GetMapping("/flight")
-    public ResponseEntity<List<Flight>> getallflights(){
-        List<Flight> flights=flightRepository.findAll();
+    public ResponseEntity<List<Flight>> getAllFlights() {
+        List<Flight> flights = flightRepository.findAll();
         return ResponseEntity.ok(flights);
     }
 
@@ -108,6 +109,32 @@ public class RootController {
         return ResponseEntity.ok(flights);
     }
 
+    @GetMapping("/flight/{id}")
+    public ResponseEntity<Flight> getFlightById(@PathVariable String id) {
+        return flightRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> {
+                    if (ObjectId.isValid(id)) {
+                        Flight flight = mongoTemplate.findById(new ObjectId(id), Flight.class, "flight");
+                        return flight != null ? ResponseEntity.ok(flight) : ResponseEntity.notFound().build();
+                    }
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
+    @GetMapping("/hotel/{id}")
+    public ResponseEntity<Hotel> getHotelById(@PathVariable String id) {
+        return hotelRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> {
+                    if (ObjectId.isValid(id)) {
+                        Hotel hotel = mongoTemplate.findById(new ObjectId(id), Hotel.class, "hotels");
+                        return hotel != null ? ResponseEntity.ok(hotel) : ResponseEntity.notFound().build();
+                    }
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
     @GetMapping("/collections")
     public ResponseEntity<Set<String>> getCollectionNames() {
         Set<String> collectionNames = new HashSet<>(mongoTemplate.getCollectionNames());
@@ -121,8 +148,7 @@ public class RootController {
     }
 
     @GetMapping("/test")
-        public String test() {
-            return "API Working";
-        }
-
+    public String test() {
+        return "API Working";
+    }
 }
