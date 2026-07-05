@@ -58,16 +58,37 @@ const BookHotelPage = () => {
   const [open, setopem] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const dispatch = useDispatch();
+  const getDocumentId = (item: any) => {
+    if (!item) return "";
+    if (typeof item.id === "string" || typeof item.id === "number") {
+      return String(item.id);
+    }
+    if (typeof item._id === "string") {
+      return item._id;
+    }
+    if (item._id && typeof item._id === "object") {
+      if (typeof item._id.$oid === "string") {
+        return item._id.$oid;
+      }
+      if (typeof item._id.toString === "function") {
+        const idString = item._id.toString();
+        if (idString !== "[object Object]") {
+          return idString;
+        }
+      }
+    }
+    return "";
+  };
+
   useEffect(() => {
     if (!hotelId) return;
     const fetchhotels = async () => {
       try {
         const data = await gethotel();
-        const filteredData = data.filter(
-          (hotel: any) =>
-            hotel.id?.toString() === hotelId?.toString() ||
-            hotel._id?.toString() === hotelId?.toString()
-        );
+        const filteredData = data.filter((hotel: any) => {
+          const documentId = getDocumentId(hotel);
+          return documentId === String(hotelId);
+        });
         sethotels(filteredData);
       } catch (error) {
         console.error("Error fetching hotels:", error);

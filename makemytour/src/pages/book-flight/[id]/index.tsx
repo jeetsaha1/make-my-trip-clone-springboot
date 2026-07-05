@@ -62,18 +62,39 @@ const BookFlightPage = () => {
   const [open, setopem] = useState(false);
   const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
+  const getDocumentId = (item: any) => {
+    if (!item) return "";
+    if (typeof item.id === "string" || typeof item.id === "number") {
+      return String(item.id);
+    }
+    if (typeof item._id === "string") {
+      return item._id;
+    }
+    if (item._id && typeof item._id === "object") {
+      if (typeof item._id.$oid === "string") {
+        return item._id.$oid;
+      }
+      if (typeof item._id.toString === "function") {
+        const idString = item._id.toString();
+        if (idString !== "[object Object]") {
+          return idString;
+        }
+      }
+    }
+    return "";
+  };
+
   useEffect(() => {
     if (!flightId) return;
     const fetchFlights = async () => {
       try {
         const data = await getflight();
-        const filteredData = data.filter(
-          (flight: any) =>
-            flight.id?.toString() === flightId?.toString() ||
-            flight._id?.toString() === flightId?.toString()
-        );
+        const filteredData = data.filter((flight: any) => {
+          const documentId = getDocumentId(flight);
+          return documentId === String(flightId);
+        });
         setFlights(filteredData);
-        console.log(filteredData);
+        console.log("Filtered flight data:", filteredData);
       } catch (error) {
         console.error("Error fetching flights:", error);
       } finally {
