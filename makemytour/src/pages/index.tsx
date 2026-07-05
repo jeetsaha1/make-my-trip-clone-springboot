@@ -1,4 +1,4 @@
-import { getCollection } from "@/api";
+import { getCollection, searchFlights, searchHotels } from "@/api";
 import Loader from "@/components/Loader";
 import { SearchSelect } from "@/components/SearchSelect";
 import SignupDialog from "@/components/SignupDialog";
@@ -449,12 +449,16 @@ export default function Home() {
     });
   };
 
-  const handlesearch = () => {
+  const handlesearch = async () => {
     sethasSearched(true);
-    const data = allData[bookingtype] || [];
-    let results = data;
+    let results: any[] = [];
 
-    if (bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") {
+    if (bookingtype === "flights") {
+      results = await searchFlights(from, to);
+    } else if (bookingtype === "hotels") {
+      results = await searchHotels(to);
+    } else if (bookingtype === "trains" || bookingtype === "buses") {
+      const data = allData[bookingtype] || [];
       results = data.filter((item: any) => {
         return (
           textMatches(item.from, from) &&
@@ -462,13 +466,15 @@ export default function Home() {
           dateMatches(item, selectedTravelDate())
         );
       });
-    } else if (bookingtype === "hotels" || bookingtype === "homestays") {
+    } else if (bookingtype === "homestays") {
+      const data = allData[bookingtype] || [];
       results = data.filter(
         (item: any) =>
           textMatches(item.location || item.city, to) ||
           textMatches(item.hotelName || item.name || item.title, to)
       );
     } else if (bookingtype === "holidays") {
+      const data = allData[bookingtype] || [];
       results = data.filter(
         (item: any) =>
           (textMatches(item.destination, to) ||
@@ -476,6 +482,7 @@ export default function Home() {
           dateMatches(item, holidayStartDate)
       );
     } else if (bookingtype === "cabs") {
+      const data = allData[bookingtype] || [];
       results = data.filter(
         (item: any) =>
           textMatches(item.city || item.from || item.pickupLocation, from) &&
@@ -483,10 +490,10 @@ export default function Home() {
           dateMatches(item, cabDate)
       );
     } else if (bookingtype === "forex") {
-      results = data.filter(
-        (item: any) => textMatches(item.currency, currency)
-      );
+      const data = allData[bookingtype] || [];
+      results = data.filter((item: any) => textMatches(item.currency, currency));
     } else if (bookingtype === "insurance") {
+      const data = allData[bookingtype] || [];
       results = data.filter(
         (item: any) =>
           textMatches(item.planName, policyType) ||

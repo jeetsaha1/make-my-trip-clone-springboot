@@ -4,10 +4,54 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://make-my-trip-clo
 
 export const getCollection = async (collection) => {
   try {
-    const res = await axios.get(`${BACKEND_URL}/collection/${collection}`);
+    const url = `${BACKEND_URL}/collection/${collection}`;
+    console.log("API request", { method: "GET", url });
+    const res = await axios.get(url);
+    console.log("API response", { url, data: res.data });
     return res.data;
   } catch (error) {
-    console.error(`Error fetching collection ${collection}:`, error);
+    console.error(`Error fetching collection ${collection}:`, {
+      url: `${BACKEND_URL}/collection/${collection}`,
+      error,
+    });
+    return [];
+  }
+};
+
+export const searchFlights = async (from, to) => {
+  try {
+    const url = `${BACKEND_URL}/flight/search?from=${encodeURIComponent(
+      from.trim()
+    )}&to=${encodeURIComponent(to.trim())}`;
+    console.log("API request", { method: "GET", url, body: null });
+    const res = await axios.get(url);
+    console.log("API response", { url, data: res.data });
+    return res.data;
+  } catch (error) {
+    console.error("Error searching flights:", {
+      from,
+      to,
+      error,
+    });
+    return [];
+  }
+};
+
+export const searchHotels = async (location, hotelName = "") => {
+  try {
+    const url = `${BACKEND_URL}/hotel/search?location=${encodeURIComponent(
+      location.trim()
+    )}&hotelName=${encodeURIComponent(hotelName.trim())}`;
+    console.log("API request", { method: "GET", url, body: null });
+    const res = await axios.get(url);
+    console.log("API response", { url, data: res.data });
+    return res.data;
+  } catch (error) {
+    console.error("Error searching hotels:", {
+      location,
+      hotelName,
+      error,
+    });
     return [];
   }
 };

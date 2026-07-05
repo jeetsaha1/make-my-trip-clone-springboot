@@ -60,11 +60,11 @@ public class AdminController {
         Optional<Hotel> hotelOptional=hotelRepository.findById(id);
         if(hotelOptional.isPresent()){
             Hotel hotel = hotelOptional.get();
-            hotel.sethotelName(updatedHotel.gethotelName());
+            hotel.setHotelName(updatedHotel.getHotelName());
             hotel.setLocation(updatedHotel.getLocation());
             hotel.setAvailableRooms(updatedHotel.getAvailableRooms());
             hotel.setPricePerNight(updatedHotel.getPricePerNight());
-            hotel.setamenities((updatedHotel.getamenities()));
+            hotel.setAmenities(updatedHotel.getAmenities());
             hotelRepository.save(hotel);
             return ResponseEntity.ok(hotel);
             }

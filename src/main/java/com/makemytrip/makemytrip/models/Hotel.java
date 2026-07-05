@@ -20,19 +20,19 @@ public class Hotel {
         this._id = id;
     }
 
-    public void setamenities(String amenities) {
-        this.amenities = amenities;
-    }
-
-    public String getamenities() {
+    public String getAmenities() {
         return amenities;
     }
 
-    public String gethotelName() {
+    public void setAmenities(String amenities) {
+        this.amenities = amenities;
+    }
+
+    public String getHotelName() {
         return hotelName;
     }
 
-    public void sethotelName(String hotelName) {
+    public void setHotelName(String hotelName) {
         this.hotelName = hotelName;
     }
 
