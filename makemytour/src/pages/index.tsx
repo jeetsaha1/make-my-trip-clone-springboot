@@ -282,6 +282,38 @@ export default function Home() {
     insurance: ["insurance"],
   };
 
+  const fallbackCollectionData: Record<string, any[]> = {
+    flights: [
+      { id: "fl-1", flightName: "Air India Express", from: "Delhi", to: "Mumbai", departureTime: "2026-07-10T09:00:00", arrivalTime: "2026-07-10T11:30:00", price: 5200, availableSeats: 18 },
+    ],
+    hotels: [
+      { id: "ht-1", hotelName: "Sunrise Suites", location: "Mumbai", pricePerNight: 7800, availableRooms: 7, amenities: "Pool, Wi-Fi, Breakfast" },
+    ],
+    homestays: [
+      { id: "hs-1", hotelName: "Beachside Homestay", location: "Goa", pricePerNight: 6200, availableRooms: 4, amenities: "Breakfast, Wi-Fi, Local Guide", description: "A cozy beachfront stay with local meals and warm hospitality." },
+      { id: "hs-2", hotelName: "Hill View Homestay", location: "Manali", pricePerNight: 5400, availableRooms: 6, amenities: "Bonfire, Mountain View, Parking", description: "Wake up to panoramic views and a peaceful mountain retreat." },
+    ],
+    holidays: [
+      { id: "hd-1", packageName: "Goa Escape", destination: "Goa", duration: "5 Days / 4 Nights", price: 28999, description: "Beachfront stay, curated tours, and private transfers.", highlights: "Sunset cruise, spa access, city tour", inclusions: "Meals, airport transfer, sightseeing" },
+      { id: "hd-2", packageName: "Himalayan Adventure", destination: "Manali", duration: "7 Days / 6 Nights", price: 34999, description: "Explore the mountains with a premium holiday itinerary.", highlights: "Cable car ride, local food tour, adventure sports", inclusions: "Stay, meals, guided activities" },
+    ],
+    trains: [
+      { id: "tr-1", trainName: "Rajdhani Express", from: "Delhi", to: "Mumbai", departureTime: "2026-07-10T20:00:00", arrivalTime: "2026-07-11T12:30:00", price: 1800, availableSeats: 24, description: "Comfort-first rail travel with AC coaches and evening meals." },
+    ],
+    buses: [
+      { id: "bs-1", busName: "Volvo Sleeper", from: "Delhi", to: "Jaipur", travelDate: "2026-07-10T21:30:00", price: 950, availableSeats: 12, description: "Luxury sleeper service with reclining seats and onboard Wi-Fi." },
+    ],
+    cabs: [
+      { id: "cb-1", cabType: "Outstation Cab", city: "Delhi", from: "Delhi", to: "Agra", pricePerKm: 14, available: true, description: "Reliable local and outstation cabs with professional drivers." },
+    ],
+    forex: [
+      { id: "fx-1", currency: "USD", buyRate: 84.5, sellRate: 83.9, description: "Competitive USD to INR rates with doorstep delivery." },
+    ],
+    insurance: [
+      { id: "in-1", planName: "Travel Secure", coverage: "₹10 Lakhs", premium: 1299, description: "Coverage for trip delays, cancellations, and medical emergencies." },
+    ],
+  };
+
   const [allData, setAllData] = useState<Record<string, any[]>>({
     flights: [],
     hotels: [],
@@ -330,15 +362,15 @@ export default function Home() {
       ]);
 
       setAllData({
-        flights: flightData,
-        hotels: hotelData,
-        homestays: homestayData,
-        holidays: holidayData,
-        trains: trainData,
-        buses: busData,
-        cabs: cabData,
-        forex: forexData,
-        insurance: insuranceData,
+        flights: flightData.length > 0 ? flightData : fallbackCollectionData.flights,
+        hotels: hotelData.length > 0 ? hotelData : fallbackCollectionData.hotels,
+        homestays: homestayData.length > 0 ? homestayData : fallbackCollectionData.homestays,
+        holidays: holidayData.length > 0 ? holidayData : fallbackCollectionData.holidays,
+        trains: trainData.length > 0 ? trainData : fallbackCollectionData.trains,
+        buses: busData.length > 0 ? busData : fallbackCollectionData.buses,
+        cabs: cabData.length > 0 ? cabData : fallbackCollectionData.cabs,
+        forex: forexData.length > 0 ? forexData : fallbackCollectionData.forex,
+        insurance: insuranceData.length > 0 ? insuranceData : fallbackCollectionData.insurance,
       });
     } catch (error) {
       console.error(error);

@@ -1,4 +1,5 @@
 package com.makemytrip.makemytrip.controllers;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -143,8 +144,149 @@ public class RootController {
 
     @GetMapping("/collection/{name}")
     public ResponseEntity<List<Document>> getCollection(@PathVariable String name) {
-        List<Document> documents = mongoTemplate.findAll(Document.class, name);
+        List<Document> documents = getCollectionData(name);
         return ResponseEntity.ok(documents);
+    }
+
+    @GetMapping("/collection/{name}/{id}")
+    public ResponseEntity<Document> getCollectionItemById(@PathVariable String name, @PathVariable String id) {
+        List<Document> documents = getCollectionData(name);
+        for (Document document : documents) {
+            Object candidateId = document.get("id");
+            if (candidateId == null) {
+                candidateId = document.get("_id");
+            }
+            if (candidateId != null && candidateId.toString().equals(id)) {
+                return ResponseEntity.ok(document);
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    private List<Document> getCollectionData(String name) {
+        if (name == null) {
+            return new ArrayList<>();
+        }
+
+        String normalizedName = name.trim().toLowerCase();
+        switch (normalizedName) {
+            case "homestays":
+                return List.of(
+                        new Document("id", "hs-1")
+                                .append("hotelName", "Beachside Homestay")
+                                .append("location", "Goa")
+                                .append("pricePerNight", 6200)
+                                .append("availableRooms", 4)
+                                .append("amenities", "Breakfast, Wi-Fi, Local Guide")
+                                .append("description", "A cozy beachfront stay with local meals and warm hospitality."),
+                        new Document("id", "hs-2")
+                                .append("hotelName", "Hill View Homestay")
+                                .append("location", "Manali")
+                                .append("pricePerNight", 5400)
+                                .append("availableRooms", 6)
+                                .append("amenities", "Bonfire, Mountain View, Parking")
+                                .append("description", "Wake up to panoramic views and a peaceful mountain retreat."));
+            case "holidays":
+                return List.of(
+                        new Document("id", "hd-1")
+                                .append("packageName", "Goa Escape")
+                                .append("destination", "Goa")
+                                .append("duration", "5 Days / 4 Nights")
+                                .append("price", 28999)
+                                .append("description", "Beachfront stay, curated tours, and private transfers.")
+                                .append("highlights", "Sunset cruise, spa access, city tour")
+                                .append("inclusions", "Meals, airport transfer, sightseeing"),
+                        new Document("id", "hd-2")
+                                .append("packageName", "Himalayan Adventure")
+                                .append("destination", "Manali")
+                                .append("duration", "7 Days / 6 Nights")
+                                .append("price", 34999)
+                                .append("description", "Explore the mountains with a premium holiday itinerary.")
+                                .append("highlights", "Cable car ride, local food tour, adventure sports")
+                                .append("inclusions", "Stay, meals, guided activities"));
+            case "trains":
+                return List.of(
+                        new Document("id", "tr-1")
+                                .append("trainName", "Rajdhani Express")
+                                .append("from", "Delhi")
+                                .append("to", "Mumbai")
+                                .append("departureTime", "2026-07-10T20:00:00")
+                                .append("arrivalTime", "2026-07-11T12:30:00")
+                                .append("price", 1800)
+                                .append("availableSeats", 24)
+                                .append("description", "Comfort-first journey with AC coaches and evening meals."),
+                        new Document("id", "tr-2")
+                                .append("trainName", "Shatabdi Express")
+                                .append("from", "Mumbai")
+                                .append("to", "Bengaluru")
+                                .append("departureTime", "2026-07-12T06:30:00")
+                                .append("arrivalTime", "2026-07-12T14:00:00")
+                                .append("price", 1450)
+                                .append("availableSeats", 18)
+                                .append("description", "Fast, comfortable travel for business and leisure."));
+            case "buses":
+                return List.of(
+                        new Document("id", "bs-1")
+                                .append("busName", "Volvo Sleeper")
+                                .append("from", "Delhi")
+                                .append("to", "Jaipur")
+                                .append("travelDate", "2026-07-10T21:30:00")
+                                .append("price", 950)
+                                .append("availableSeats", 12)
+                                .append("description", "Luxury sleeper service with reclining seats and onboard Wi-Fi."),
+                        new Document("id", "bs-2")
+                                .append("busName", "AC Seater")
+                                .append("from", "Mumbai")
+                                .append("to", "Pune")
+                                .append("travelDate", "2026-07-11T08:00:00")
+                                .append("price", 650)
+                                .append("availableSeats", 20)
+                                .append("description", "Comfortable air-conditioned buses for day travel."));
+            case "cabs":
+                return List.of(
+                        new Document("id", "cb-1")
+                                .append("cabType", "Outstation Cab")
+                                .append("city", "Delhi")
+                                .append("from", "Delhi")
+                                .append("to", "Agra")
+                                .append("pricePerKm", 14)
+                                .append("available", true)
+                                .append("description", "Reliable local and outstation cabs with professional drivers."),
+                        new Document("id", "cb-2")
+                                .append("cabType", "Airport Transfer")
+                                .append("city", "Bengaluru")
+                                .append("from", "Airport")
+                                .append("to", "City Center")
+                                .append("pricePerKm", 11)
+                                .append("available", true)
+                                .append("description", "Hassle-free airport pickups and drop-offs."));
+            case "forex":
+                return List.of(
+                        new Document("id", "fx-1")
+                                .append("currency", "USD")
+                                .append("buyRate", 84.50)
+                                .append("sellRate", 83.90)
+                                .append("description", "Competitive USD to INR rates with doorstep delivery."),
+                        new Document("id", "fx-2")
+                                .append("currency", "EUR")
+                                .append("buyRate", 92.10)
+                                .append("sellRate", 91.30)
+                                .append("description", "Secure euro exchange for your upcoming travels."));
+            case "insurance":
+                return List.of(
+                        new Document("id", "in-1")
+                                .append("planName", "Travel Secure")
+                                .append("coverage", "₹10 Lakhs")
+                                .append("premium", 1299)
+                                .append("description", "Coverage for trip delays, cancellations, and medical emergencies."),
+                        new Document("id", "in-2")
+                                .append("planName", "Annual Travel Plus")
+                                .append("coverage", "₹25 Lakhs")
+                                .append("premium", 2599)
+                                .append("description", "Annual protection for frequent travelers and family trips."));
+            default:
+                return mongoTemplate.findAll(Document.class, normalizedName);
+        }
     }
 
     @GetMapping("/test")
