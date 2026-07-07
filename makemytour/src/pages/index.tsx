@@ -325,6 +325,17 @@ export default function Home() {
     forex: [],
     insurance: [],
   });
+  const [allDataServer, setAllDataServer] = useState<Record<string, any[]>>({
+    flights: [],
+    hotels: [],
+    homestays: [],
+    holidays: [],
+    trains: [],
+    buses: [],
+    cabs: [],
+    forex: [],
+    insurance: [],
+  });
 
   const fetchCollectionByCandidates = async (collections: string[]) => {
     for (const collection of collections) {
@@ -360,6 +371,18 @@ export default function Home() {
         fetchCollectionByCandidates(collectionMap.forex),
         fetchCollectionByCandidates(collectionMap.insurance),
       ]);
+
+      setAllDataServer({
+        flights: flightData,
+        hotels: hotelData,
+        homestays: homestayData,
+        holidays: holidayData,
+        trains: trainData,
+        buses: busData,
+        cabs: cabData,
+        forex: forexData,
+        insurance: insuranceData,
+      });
 
       setAllData({
         flights: flightData.length > 0 ? flightData : fallbackCollectionData.flights,
@@ -414,11 +437,12 @@ export default function Home() {
 
   const hasCabDropoff = useMemo(() => {
     try {
-      return (allData.cabs || []).some((item: any) => !!(item.to || item.dropLocation || item.destination));
+      const serverCabs = allDataServer.cabs || [];
+      return serverCabs.length > 0 && serverCabs.some((item: any) => !!(item.to || item.dropLocation || item.destination));
     } catch (e) {
       return false;
     }
-  }, [allData]);
+  }, [allDataServer]);
 
   if (loading) {
     return <Loader />;
@@ -602,6 +626,28 @@ export default function Home() {
     if (item.uuid && typeof item.uuid === "string") return item.uuid;
     if (item.guid && typeof item.guid === "string") return item.guid;
     if (item._id && typeof item._id === "string") return item._id;
+    // Last-resort: recursively search for a 24-char hex string (ObjectId)
+    const seen = new Set<any>();
+    const oidRegex = /^[a-fA-F0-9]{24}$/;
+    const findHex = (obj: any): string | null => {
+      if (!obj || typeof obj !== 'object') return null;
+      if (seen.has(obj)) return null;
+      seen.add(obj);
+      for (const k of Object.keys(obj)) {
+        try {
+          const v = obj[k];
+          if (typeof v === 'string' && oidRegex.test(v)) return v;
+          if (typeof v === 'object') {
+            const nested = findHex(v);
+            if (nested) return nested;
+          }
+        } catch (e) {}
+      }
+      return null;
+    };
+
+    const found = findHex(item);
+    if (found) return found;
 
     return "";
   };

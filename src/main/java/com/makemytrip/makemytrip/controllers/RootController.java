@@ -184,6 +184,24 @@ public class RootController {
         }
 
         String normalizedName = name.trim().toLowerCase();
+        // If a real collection exists in Mongo, prefer returning its documents.
+        try {
+            Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
+            if (names.contains(normalizedName)) {
+                return mongoTemplate.findAll(Document.class, normalizedName);
+            }
+            // try to find close match
+            for (String n : names) {
+                String lower = n.toLowerCase();
+                if (lower.equals(normalizedName) || lower.endsWith(normalizedName) || lower.contains(normalizedName)) {
+                    logger.info("Using existing collection '{}' for request '{}'", n, normalizedName);
+                    return mongoTemplate.findAll(Document.class, n);
+                }
+            }
+        } catch (Exception ex) {
+            logger.warn("Error checking collection names: {}", ex.getMessage());
+        }
+
         switch (normalizedName) {
             case "homestays":
                 return List.of(
@@ -300,7 +318,31 @@ public class RootController {
                                 .append("premium", 2599)
                                 .append("description", "Annual protection for frequent travelers and family trips."));
             default:
-                return mongoTemplate.findAll(Document.class, normalizedName);
+                try {
+                    // Attempt to find a collection with the requested name or similar
+                    Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
+                    if (names.contains(normalizedName)) {
+                        return mongoTemplate.findAll(Document.class, normalizedName);
+                    }
+                    // try to find a close match (contains or endsWith)
+                    String match = null;
+                    for (String n : names) {
+                        String lower = n.toLowerCase();
+                        if (lower.equals(normalizedName) || lower.endsWith(normalizedName) || lower.contains(normalizedName)) {
+                            match = n;
+                            break;
+                        }
+                    }
+                    if (match != null) {
+                        logger.info("Using collection '{}' for requested '{}'", match, normalizedName);
+                        return mongoTemplate.findAll(Document.class, match);
+                    }
+                    // fallback: return empty list rather than throwing
+                    return new ArrayList<>();
+                } catch (Exception ex) {
+                    logger.warn("Failed to fetch collection {}: {}", normalizedName, ex.getMessage());
+                    return new ArrayList<>();
+                }
         }
     }
 
