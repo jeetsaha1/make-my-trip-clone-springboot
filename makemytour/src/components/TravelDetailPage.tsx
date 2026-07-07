@@ -150,6 +150,13 @@ const TravelDetailPage = ({
     }
 
     if (detailType === "transport") {
+      if (collectionName === "cabs" || item.cabType) {
+        return [
+          `Price per km: ₹${item.pricePerKm ?? item.price ?? "N/A"}`,
+          item.available ? "Available now" : "Availability may vary",
+          item.city ? `Pickup city: ${item.city}` : `${item.from || "From"} → ${item.to || "To"}`,
+        ];
+      }
       return [
         item.availableSeats ? `${item.availableSeats} seats left` : "Flexible travel options",
         item.departureTime ? `Departs ${item.departureTime}` : "Convenient travel schedules",
@@ -218,8 +225,8 @@ const TravelDetailPage = ({
       cards.push({ label: "Check-in", value: item.checkin || "Flexible" });
       cards.push({ label: "Amenities", value: item.amenities || "Premium amenities" });
     } else if (detailType === "transport") {
-      cards.push({ label: "Route", value: `${item.from || "From"} → ${item.to || "To"}` });
-      cards.push({ label: "Departure", value: item.departureTime || item.date || "Flexible" });
+      cards.push({ label: "Route", value: item.cabType ? `${item.city || item.from || "From"} → ${item.to || item.destination || "To"}` : `${item.from || "From"} → ${item.to || "To"}` });
+      cards.push({ label: "Departure", value: item.departureTime || item.date || item.travelDate || "Flexible" });
       cards.push({ label: "Arrival", value: item.arrivalTime || item.travelDate || "Flexible" });
     } else if (detailType === "package") {
       cards.push({ label: "Destination", value: item.destination || location || "India" });

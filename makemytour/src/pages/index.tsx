@@ -515,12 +515,13 @@ export default function Home() {
       );
     } else if (bookingtype === "cabs") {
       const data = allData[bookingtype] || [];
-      results = data.filter(
-        (item: any) =>
-          textMatches(item.city || item.from || item.pickupLocation, from) &&
-          textMatches(item.to || item.dropLocation || item.destination, to) &&
-          dateMatches(item, cabDate)
-      );
+      results = data.filter((item: any) => {
+        const pickupCity = item.city || item.from || item.pickupLocation;
+        const dropLocation = item.to || item.dropLocation || item.destination;
+        const pickupMatch = textMatches(pickupCity, from);
+        const dropMatch = to ? textMatches(dropLocation, to) : true;
+        return pickupMatch && dropMatch && dateMatches(item, cabDate);
+      });
     } else if (bookingtype === "forex") {
       const data = allData[bookingtype] || [];
       results = data.filter((item: any) => textMatches(item.currency, currency));
@@ -561,6 +562,11 @@ export default function Home() {
       return String(item.id);
     }
 
+    if (item.id && typeof item.id === "object") {
+      if (typeof item.id.$oid === "string") return item.id.$oid;
+      if (typeof item.id.oid === "string") return item.id.oid;
+    }
+
     if (typeof item._id === "string") {
       return item._id;
     }
@@ -568,6 +574,9 @@ export default function Home() {
     if (item._id && typeof item._id === "object") {
       if (typeof item._id.$oid === "string") {
         return item._id.$oid;
+      }
+      if (typeof item._id.oid === "string") {
+        return item._id.oid;
       }
       if (typeof item._id.toString === "function") {
         const idString = item._id.toString();
@@ -601,14 +610,27 @@ export default function Home() {
       const query: Record<string, string> = {};
       if (checkin) query.checkin = checkin;
       if (checkout) query.checkout = checkout;
-      router.push({ pathname: `/book-hotel/${id}`, query });
-    } else if (["holidays", "trains", "buses", "cabs", "forex", "insurance"].includes(bookingtype)) {
+      router.push({ pathname: `/travel/homestays/${id}`, query });
+    } else if (bookingtype === "holidays") {
       const query: Record<string, string> = {};
-      if (checkin) query.checkin = checkin;
-      if (checkout) query.checkout = checkout;
-      if (departureDate) query.departureDate = departureDate;
       if (holidayStartDate) query.startDate = holidayStartDate;
-      router.push({ pathname: `/travel/${bookingtype}/${id}`, query });
+      router.push({ pathname: `/travel/holidays/${id}`, query });
+    } else if (bookingtype === "trains") {
+      const query: Record<string, string> = {};
+      if (trainDate) query.travelDate = trainDate;
+      router.push({ pathname: `/travel/trains/${id}`, query });
+    } else if (bookingtype === "buses") {
+      const query: Record<string, string> = {};
+      if (busDate) query.travelDate = busDate;
+      router.push({ pathname: `/travel/buses/${id}`, query });
+    } else if (bookingtype === "cabs") {
+      const query: Record<string, string> = {};
+      if (cabDate) query.travelDate = cabDate;
+      router.push({ pathname: `/travel/cabs/${id}`, query });
+    } else if (bookingtype === "forex") {
+      router.push({ pathname: `/travel/forex/${id}` });
+    } else if (bookingtype === "insurance") {
+      router.push({ pathname: `/travel/insurance/${id}` });
     } else {
       alert(`Booking page not available for ${bookingtype} yet.`);
     }
@@ -1248,11 +1270,11 @@ export default function Home() {
                           {bookingtype === "flights"
                             ? `Flight: ${result.flightName || result.flight}`
                             : bookingtype === "trains"
-                            ? `Train: ${result.trainName}`
-                            : `Bus: ${result.busName}`}
+                            ? `Train: ${result.trainName || result.name || result.title || "Train"}`
+                            : `Bus: ${result.busName || result.name || result.title || "Bus"}`}
                         </p>
                         <h3 className="font-semibold text-lg">
-                          {result.from} to {result.to}
+                          {result.from || result.city || result.pickupLocation || "From"} to {result.to || result.destination || result.dropLocation || "To"}
                         </h3>
                         <p className="text-gray-600">
                           Departure Time: {formatDate(result.departureTime || result.date || result.travelDate || "")}
@@ -1261,10 +1283,10 @@ export default function Home() {
                           Arrival Time: {formatDate(result.arrivalTime || result.date || result.travelDate || "")}
                         </p>
                         <p className="text-lg font-bold mt-2">
-                          ₹{result.price}
+                          ₹{result.price || result.fare || result.cost || result.pricePerKm || 0}
                         </p>
                         <p className="text-sm text-gray-500 mt-1">
-                          Available Seats: {result.availableSeats || result.availableSeats || result.availableSeats}
+                          Seats: {result.availableSeats ?? result.seats ?? result.available ?? "N/A"}
                         </p>
                         <Button
                           className="w-full mt-4"
@@ -1310,14 +1332,14 @@ export default function Home() {
                     {bookingtype === "cabs" && (
                       <>
                         <h3 className="font-semibold text-lg">
-                          {result.cabType || result.name || result.title}
+                          {result.cabType || result.name || result.title || "Cab Service"}
                         </h3>
-                        <p className="text-gray-600">City: {result.city}</p>
+                        <p className="text-gray-600">City: {result.city || result.from || "Unknown"}</p>
                         <p className="text-gray-600">
-                          Price per km: ₹{result.pricePerKm}
+                          Price per km: ₹{(result.pricePerKm ?? result.price) || "N/A"}
                         </p>
                         <p className="text-gray-600">
-                          Available: {result.available ? "Yes" : "No"}
+                          Available: {typeof result.available === "boolean" ? (result.available ? "Yes" : "No") : "Unknown"}
                         </p>
                         <Button
                           className="w-full mt-4"
