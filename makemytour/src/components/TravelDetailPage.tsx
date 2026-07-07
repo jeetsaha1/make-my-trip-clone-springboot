@@ -70,13 +70,37 @@ const TravelDetailPage = ({
         let result = await getCollectionItemById(collectionName, itemId);
         if (!result) {
           const collection = await getCollection(collectionName);
-          result = Array.isArray(collection)
-            ? collection.find((entry: any) => {
-                const candidateId =
-                  entry?.id ?? entry?._id ?? entry?.slug ?? entry?.uuid ?? entry?.itemId;
-                return String(candidateId) === String(itemId);
-              })
-            : null;
+          if (Array.isArray(collection)) {
+            result = collection.find((entry: any) => {
+              const tryExtract = (obj: any) => {
+                if (!obj) return "";
+                if (typeof obj === "string" || typeof obj === "number") return String(obj);
+                if (obj.$oid) return String(obj.$oid);
+                if (obj.$id) return String(obj.$id);
+                if (typeof obj.toHexString === "function") {
+                  try { return String(obj.toHexString()); } catch (e) {}
+                }
+                if (typeof obj.toString === "function") {
+                  try {
+                    const s = obj.toString();
+                    if (s && s !== "[object Object]") return s;
+                  } catch (e) {}
+                }
+                return "";
+              };
+
+              const ids = [
+                tryExtract(entry.id),
+                tryExtract(entry._id),
+                tryExtract(entry.slug),
+                tryExtract(entry.uuid),
+                tryExtract(entry.guid),
+                tryExtract(entry.itemId),
+              ].filter(Boolean);
+
+              return ids.includes(String(itemId));
+            });
+          }
         }
         setItem(result);
       } catch (error) {
@@ -117,6 +141,15 @@ const TravelDetailPage = ({
   const priceValue = useMemo(() => {
     if (!item) return 0;
     return Number(item.pricePerNight || item.price || item.pricePerKm || item.premium || item.buyRate || item.sellRate || 0);
+  }, [item]);
+
+  const images = useMemo(() => {
+    if (!item) return [] as string[];
+    const candidates: any = item.images || item.pictures || item.photos || item.imageUrls || item.gallery || item.imageUrl || item.image;
+    if (!candidates) return [];
+    if (typeof candidates === "string") return [candidates];
+    if (Array.isArray(candidates)) return candidates.filter(Boolean).map(String);
+    return [];
   }, [item]);
 
   const priceLabel = useMemo(() => {
@@ -309,6 +342,22 @@ const TravelDetailPage = ({
 
           <div className="grid gap-8 p-6 md:p-10 lg:grid-cols-[1.25fr_0.75fr]">
             <div className="space-y-6">
+              {images.length > 0 && (
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <div className="grid gap-4 lg:grid-cols-[1fr_0.35fr]">
+                    <div className="rounded-lg overflow-hidden">
+                      <img src={images[0]} alt={title} className="w-full h-72 object-cover" />
+                    </div>
+                    <div className="grid gap-2">
+                      {images.slice(1, 5).map((img, i) => (
+                        <div key={i} className="rounded-lg overflow-hidden">
+                          <img src={img} alt={`${title}-${i}`} className="w-full h-20 object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
               <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
                 <div className="flex items-center gap-2 text-blue-600">
                   <Sparkles className="h-5 w-5" />
@@ -380,6 +429,16 @@ const TravelDetailPage = ({
                           <DialogTitle className="text-2xl font-semibold">Confirm your booking</DialogTitle>
                         </DialogHeader>
                         <div className="mt-4 grid gap-4">
+                          {images.length > 0 && (
+                            <div className="rounded-xl bg-slate-50 p-3">
+                              <p className="text-sm text-slate-500">Recent images</p>
+                              <div className="mt-2 flex gap-2">
+                                {images.slice(-3).map((img, idx) => (
+                                  <img key={idx} src={img} alt={`img-${idx}`} className="h-16 w-24 object-cover rounded-md" />
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="rounded-xl bg-slate-50 p-4">
                             <p className="text-sm text-slate-500">Selected plan</p>
                             <p className="text-lg font-semibold">{title}</p>

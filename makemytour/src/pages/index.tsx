@@ -412,6 +412,14 @@ export default function Home() {
     return Array.from(cities).map((city) => ({ value: city, label: city }));
   }, [allData]);
 
+  const hasCabDropoff = useMemo(() => {
+    try {
+      return (allData.cabs || []).some((item: any) => !!(item.to || item.dropLocation || item.destination));
+    } catch (e) {
+      return false;
+    }
+  }, [allData]);
+
   if (loading) {
     return <Loader />;
   }
@@ -572,19 +580,28 @@ export default function Home() {
     }
 
     if (item._id && typeof item._id === "object") {
-      if (typeof item._id.$oid === "string") {
-        return item._id.$oid;
-      }
-      if (typeof item._id.oid === "string") {
-        return item._id.oid;
+      if (typeof item._id.$oid === "string") return item._id.$oid;
+      if (typeof item._id.$id === "string") return item._id.$id;
+      if (typeof item._id.oid === "string") return item._id.oid;
+      if (typeof item._id.id === "string") return item._id.id;
+      if (typeof item._id.toHexString === "function") {
+        try {
+          const hex = item._id.toHexString();
+          if (hex) return hex;
+        } catch (e) {}
       }
       if (typeof item._id.toString === "function") {
-        const idString = item._id.toString();
-        if (idString !== "[object Object]") {
-          return idString;
-        }
+        try {
+          const idString = item._id.toString();
+          if (idString && idString !== "[object Object]") return idString;
+        } catch (e) {}
       }
     }
+
+    // Additional common places
+    if (item.uuid && typeof item.uuid === "string") return item.uuid;
+    if (item.guid && typeof item.guid === "string") return item.guid;
+    if (item._id && typeof item._id === "string") return item._id;
 
     return "";
   };
@@ -1074,16 +1091,18 @@ export default function Home() {
                     subtitle="Enter pickup city"
                   />
                 </div>
-                <div className="col-span-1">
-                  <SearchSelect
-                    options={cityOptions}
-                    placeholder="Drop Location"
-                    value={to}
-                    onChange={setto}
-                    icon={<MapPin className="text-gray-400" />}
-                    subtitle="Enter drop city"
-                  />
-                </div>
+                {hasCabDropoff && (
+                  <div className="col-span-1">
+                    <SearchSelect
+                      options={cityOptions}
+                      placeholder="Drop Location"
+                      value={to}
+                      onChange={setto}
+                      icon={<MapPin className="text-gray-400" />}
+                      subtitle="Enter drop city"
+                    />
+                  </div>
+                )}
                 <div className="col-span-1">
                   <SearchInput
                     icon={<Calendar className="text-gray-400" />}
