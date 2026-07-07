@@ -18,6 +18,17 @@ export const getCollection = async (collection) => {
   }
 };
 
+export const getCollectionItemById = async (collection, id) => {
+  try {
+    const url = `${BACKEND_URL}/collection/${collection}/${encodeURIComponent(id)}`;
+    const res = await axios.get(url);
+    return res.data;
+  } catch (error) {
+    console.error(`Error fetching ${collection} item ${id}:`, error);
+    return null;
+  }
+};
+
 export const searchFlights = async (from, to) => {
   try {
     const url = `${BACKEND_URL}/flight/search?from=${encodeURIComponent(

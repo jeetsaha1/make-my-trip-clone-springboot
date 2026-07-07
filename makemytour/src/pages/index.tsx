@@ -560,11 +560,23 @@ export default function Home() {
       if (departureDate) query.departureDate = departureDate;
       if (returnDate) query.returnDate = returnDate;
       router.push({ pathname: `/book-flight/${id}`, query });
-    } else if (bookingtype === "hotels" || bookingtype === "homestays") {
+    } else if (bookingtype === "hotels") {
       const query: Record<string, string> = {};
       if (checkin) query.checkin = checkin;
       if (checkout) query.checkout = checkout;
       router.push({ pathname: `/book-hotel/${id}`, query });
+    } else if (bookingtype === "homestays") {
+      const query: Record<string, string> = {};
+      if (checkin) query.checkin = checkin;
+      if (checkout) query.checkout = checkout;
+      router.push({ pathname: `/book-hotel/${id}`, query });
+    } else if (["holidays", "trains", "buses", "cabs", "forex", "insurance"].includes(bookingtype)) {
+      const query: Record<string, string> = {};
+      if (checkin) query.checkin = checkin;
+      if (checkout) query.checkout = checkout;
+      if (departureDate) query.departureDate = departureDate;
+      if (holidayStartDate) query.startDate = holidayStartDate;
+      router.push({ pathname: `/travel/${bookingtype}/${id}`, query });
     } else {
       alert(`Booking page not available for ${bookingtype} yet.`);
     }
@@ -1250,7 +1262,7 @@ export default function Home() {
                     {bookingtype === "holidays" && (
                       <>
                         <h3 className="font-semibold text-lg">
-                          {result.packageName}
+                          {result.packageName || result.name || result.title}
                         </h3>
                         <p className="text-gray-600">Destination: {result.destination}</p>
                         <p className="text-gray-600">Duration: {result.duration}</p>
@@ -1266,7 +1278,7 @@ export default function Home() {
                     {bookingtype === "cabs" && (
                       <>
                         <h3 className="font-semibold text-lg">
-                          {result.cabType}
+                          {result.cabType || result.name || result.title}
                         </h3>
                         <p className="text-gray-600">City: {result.city}</p>
                         <p className="text-gray-600">
@@ -1279,7 +1291,7 @@ export default function Home() {
                           className="w-full mt-4"
                           onClick={() => handlebooknow(result)}
                         >
-                          Book Now
+                          View Details
                         </Button>
                       </>
                     )}
@@ -1294,14 +1306,14 @@ export default function Home() {
                           className="w-full mt-4"
                           onClick={() => handlebooknow(result)}
                         >
-                          Refresh Rate
+                          View Details
                         </Button>
                       </>
                     )}
                     {bookingtype === "insurance" && (
                       <>
                         <h3 className="font-semibold text-lg">
-                          {result.planName}
+                          {result.planName || result.name || result.title}
                         </h3>
                         <p className="text-gray-600">Coverage: {result.coverage}</p>
                         <p className="text-gray-600">Premium: ₹{result.premium}</p>
@@ -1309,7 +1321,7 @@ export default function Home() {
                           className="w-full mt-4"
                           onClick={() => handlebooknow(result)}
                         >
-                          Get Quote
+                          View Details
                         </Button>
                       </>
                     )}
