@@ -189,10 +189,12 @@ const TravelDetailPage = ({
 
     if (detailType === "transport") {
       if (collectionName === "cabs" || item.cabType) {
+        const pickup = item.city || item.from || item.pickupLocation || "Unknown pickup";
+        const drop = item.to || item.dropLocation || item.destination || null;
         return [
           `Price per km: ₹${item.pricePerKm ?? item.price ?? "N/A"}`,
           item.available ? "Available now" : "Availability may vary",
-          item.city ? `Pickup city: ${item.city}` : `${item.from || "From"} → ${item.to || "To"}`,
+          drop ? `Route: ${pickup} → ${drop}` : `Pickup: ${pickup} (drop not provided)`,
         ];
       }
       return [
@@ -263,7 +265,9 @@ const TravelDetailPage = ({
       cards.push({ label: "Check-in", value: item.checkin || "Flexible" });
       cards.push({ label: "Amenities", value: item.amenities || "Premium amenities" });
     } else if (detailType === "transport") {
-      cards.push({ label: "Route", value: item.cabType ? `${item.city || item.from || "From"} → ${item.to || item.destination || "To"}` : `${item.from || "From"} → ${item.to || "To"}` });
+      const pickup = item.city || item.from || item.pickupLocation || "From";
+      const drop = item.to || item.destination || item.dropLocation || "To";
+      cards.push({ label: "Route", value: item.cabType ? `${pickup} → ${drop === 'To' ? 'Not specified' : drop}` : `${item.from || "From"} → ${item.to || "To"}` });
       cards.push({ label: "Departure", value: item.departureTime || item.date || item.travelDate || "Flexible" });
       cards.push({ label: "Arrival", value: item.arrivalTime || item.travelDate || "Flexible" });
     } else if (detailType === "package") {
@@ -435,7 +439,14 @@ const TravelDetailPage = ({
                 <div className="mt-5 space-y-3 text-sm text-slate-600">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    <span>{location || "Flexible destination"}</span>
+                    {detailType === 'transport' && (collectionName === 'cabs' || item?.cabType) ? (
+                      <div>
+                        <div className="text-sm">Pickup: {item?.city || item?.from || item?.pickupLocation || 'Unknown'}</div>
+                        <div className="text-xs text-gray-500">Drop: {item?.to || item?.dropLocation || item?.destination ? (item?.to || item?.dropLocation || item?.destination) : 'Not provided'}</div>
+                      </div>
+                    ) : (
+                      <span>{location || "Flexible destination"}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
@@ -471,7 +482,14 @@ const TravelDetailPage = ({
                           <div className="rounded-xl bg-slate-50 p-4">
                             <p className="text-sm text-slate-500">Selected plan</p>
                             <p className="text-lg font-semibold">{title}</p>
-                            <p className="text-sm text-slate-600">{location}</p>
+                            {detailType === 'transport' && (collectionName === 'cabs' || item?.cabType) ? (
+                              <div className="text-sm text-slate-600">
+                                <div>Pickup: {item?.city || item?.from || item?.pickupLocation || 'Unknown'}</div>
+                                <div>Drop: {item?.to || item?.dropLocation || item?.destination ? (item?.to || item?.dropLocation || item?.destination) : 'Not provided'}</div>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-slate-600">{location}</p>
+                            )}
                           </div>
                           <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
