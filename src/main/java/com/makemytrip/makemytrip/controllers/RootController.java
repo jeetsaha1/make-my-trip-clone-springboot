@@ -156,8 +156,23 @@ public class RootController {
             if (candidateId == null) {
                 candidateId = document.get("_id");
             }
-            if (candidateId != null && candidateId.toString().equals(id)) {
-                return ResponseEntity.ok(document);
+            if (candidateId != null) {
+                // Direct string match
+                if (candidateId.toString().equals(id)) {
+                    return ResponseEntity.ok(document);
+                }
+
+                // If _id is an ObjectId, compare hex string
+                try {
+                    if (candidateId instanceof org.bson.types.ObjectId) {
+                        org.bson.types.ObjectId oid = (org.bson.types.ObjectId) candidateId;
+                        if (oid.toHexString().equals(id) || oid.toString().contains(id)) {
+                            return ResponseEntity.ok(document);
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore and continue
+                }
             }
         }
         return ResponseEntity.notFound().build();

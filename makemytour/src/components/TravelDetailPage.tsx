@@ -36,6 +36,11 @@ import Loader from "@/components/Loader";
 import ReviewSection from "@/components/ReviewSection";
 import SignupDialog from "@/components/SignupDialog";
 import { getCollection, getCollectionItemById } from "@/api";
+import LiveFlightStatus from "@/components/LiveFlightStatus";
+import SeatMap from "@/components/SeatMap";
+import RoomSelection from "@/components/RoomSelection";
+import PriceGraph from "@/components/PriceGraph";
+import Recommendations from "@/components/Recommendations";
 
 interface TravelDetailPageProps {
   collectionName: string;
@@ -358,6 +363,30 @@ const TravelDetailPage = ({
                   </div>
                 </section>
               )}
+
+              {/* Flight-specific: live status + seat map */}
+              {entityType === 'flight' && (
+                <>
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                    <LiveFlightStatus flightId={String(item?.id || item?._id || item?.flightId || '')} />
+                  </section>
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                    <SeatMap flightId={String(item?.id || item?._id || item?.flightId || '')} />
+                  </section>
+                </>
+              )}
+
+              {/* Stay-specific: room selection and price history */}
+              {detailType === 'stay' && (
+                <>
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                    <RoomSelection hotelId={String(item?.id || item?._id || '')} images={images} />
+                  </section>
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                    <PriceGraph id={String(item?.id || item?._id || '')} />
+                  </section>
+                </>
+              )}
               <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
                 <div className="flex items-center gap-2 text-blue-600">
                   <Sparkles className="h-5 w-5" />
@@ -482,6 +511,10 @@ const TravelDetailPage = ({
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <Recommendations userKey={user?.email || user?.id || ''} />
         </div>
 
         <ReviewSection entityType={entityType} entityId={itemId || ""} user={user} />
