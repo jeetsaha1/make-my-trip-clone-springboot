@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   ArrowRight,
   BedDouble,
@@ -36,11 +37,13 @@ import Loader from "@/components/Loader";
 import ReviewSection from "@/components/ReviewSection";
 import SignupDialog from "@/components/SignupDialog";
 import { getCollection, getCollectionItemById } from "@/api";
+import { bookGenericExperience } from "@/api";
 import LiveFlightStatus from "@/components/LiveFlightStatus";
 import SeatMap from "@/components/SeatMap";
 import RoomSelection from "@/components/RoomSelection";
 import PriceGraph from "@/components/PriceGraph";
 import Recommendations from "@/components/Recommendations";
+import { setUser } from "@/store";
 
 interface TravelDetailPageProps {
   collectionName: string;
@@ -63,6 +66,7 @@ const TravelDetailPage = ({
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
   const user = useSelector((state: any) => state.user.user);
+  const dispatch = useDispatch();
 
   const normalizeToken = (value: any) =>
     String(value || "")
@@ -346,9 +350,39 @@ const TravelDetailPage = ({
     setQuantity(Number.isNaN(value) ? 1 : Math.max(1, Math.min(value, maxQuantity)));
   };
 
-  const handleBooking = () => {
-    setOpen(false);
-    router.push("/profile");
+  const handleBooking = async () => {
+    if (!user) {
+      setOpen(false);
+      return;
+    }
+
+    try {
+      const booking = await bookGenericExperience({
+        userId: user?.id || user?._id,
+        type: pageTitle,
+        referenceId: String(item?.id || item?._id || item?.slug || item?.name || item?.title || ""),
+        referenceName: title,
+        collectionName,
+        location: location || item?.city || item?.destination || "",
+        travelDate: item?.travelDate || item?.departureTime || item?.date || "",
+        startDate: item?.startDate || "",
+        endDate: item?.endDate || "",
+        notes: overviewText,
+        quantity,
+        price: Number(priceValue * quantity),
+      });
+
+      const nextUser = {
+        ...user,
+        bookings: [...(user?.bookings || []), booking],
+      };
+
+      dispatch(setUser(nextUser));
+      setOpen(false);
+      router.push("/profile");
+    } catch (error) {
+      console.error("Failed to book generic experience", error);
+    }
   };
 
   if (loading) {

@@ -82,7 +82,11 @@ const Profile = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) {
+      return dateString || "-";
+    }
+    return parsed.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -242,7 +246,7 @@ const Profile = () => {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
               <div className="space-y-6">
-                {user?.bookings.map((booking: any, index: any) => (
+                {user?.bookings?.length ? user.bookings.map((booking: any, index: any) => (
                   <div
                     key={index}
                     className="border rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -259,9 +263,12 @@ const Profile = () => {
                           </div>
                         )}
                         <div>
-                          <h3 className="font-semibold">{booking?.type}</h3>
+                          <h3 className="font-semibold">{booking?.referenceName || booking?.type}</h3>
                           <p className="text-sm text-gray-500">
                             Booking ID: {booking?.bookingId}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {booking?.bookingStatus || "Confirmed"} • {booking?.collectionName || booking?.type}
                           </p>
                         </div>
                       </div>
@@ -279,13 +286,22 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
-                        <span>{booking?.type}</span>
+                        <span>{booking?.location || booking?.startDate || booking?.travelDate || booking?.type}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <CreditCard className="w-4 h-4" />
                         <span>{booking?.bookingStatus || "Confirmed"}</span>
                       </div>
                     </div>
+                    {(booking?.startDate || booking?.endDate || booking?.travelDate || booking?.notes) && (
+                      <div className="rounded-lg bg-gray-50 p-4 mb-4 text-sm text-gray-700 space-y-1">
+                        {booking?.startDate && <p>Start Date: {formatDate(booking.startDate)}</p>}
+                        {booking?.endDate && <p>End Date: {formatDate(booking.endDate)}</p>}
+                        {booking?.travelDate && <p>Travel Date: {formatDate(booking.travelDate)}</p>}
+                        {booking?.referenceId && <p>Reference: {booking.referenceId}</p>}
+                        {booking?.notes && <p>{booking.notes}</p>}
+                      </div>
+                    )}
                     {booking?.bookingStatus === "Cancelled" ? (
                       <div className="rounded-lg bg-red-50 p-4 mb-4 text-sm text-red-700">
                         <p className="font-semibold">Refund Status: {booking?.refundStatus}</p>
@@ -344,7 +360,11 @@ const Profile = () => {
                       </div>
                     ) : null}
                   </div>
-                ))}
+                )) : (
+                  <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500">
+                    No bookings yet. Your reserved homestays, holidays, trains, buses, cabs, forex, and insurance will appear here.
+                  </div>
+                )}
               </div>
             </div>
           </div>

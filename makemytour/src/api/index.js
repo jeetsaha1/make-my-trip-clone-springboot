@@ -295,6 +295,16 @@ export const handlehotelbooking = async (userId, hotelId, rooms, price) => {
   }
 };
 
+export const bookGenericExperience = async (payload) => {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/booking/generic`, payload);
+    return res.data;
+  } catch (error) {
+    console.error("Error booking generic experience:", error);
+    throw error;
+  }
+};
+
 export const getReviews = async (entityType, entityId, sort = "newest", stars) => {
   try {
     let url = `${BACKEND_URL}/reviews?entityType=${entityType}&entityId=${entityId}&sort=${sort}`;

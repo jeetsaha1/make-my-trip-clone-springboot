@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.makemytrip.makemytrip.models.BookingCancellationRequest;
+import com.makemytrip.makemytrip.models.GenericBookingRequest;
 import com.makemytrip.makemytrip.models.Users;
 import com.makemytrip.makemytrip.services.BookingService;
 
@@ -25,6 +26,11 @@ public class BookingController {
     @PostMapping("/hotel")
     public Users.Booking bookhotel (@RequestParam String userId,@RequestParam String hotelId,@RequestParam int rooms,@RequestParam double price){
         return bookingService.bookhotel(userId,hotelId,rooms,price);
+    }
+
+    @PostMapping("/generic")
+    public Users.Booking bookGeneric(@RequestBody GenericBookingRequest request){
+        return bookingService.bookGeneric(request);
     }
 
     @PostMapping("/cancel")

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.makemytrip.makemytrip.models.Flight;
+import com.makemytrip.makemytrip.models.GenericBookingRequest;
 import com.makemytrip.makemytrip.models.Hotel;
 import com.makemytrip.makemytrip.models.Users;
 import com.makemytrip.makemytrip.models.Users.Booking;
@@ -79,6 +80,31 @@ public class BookingService {
             }
         }
         throw new RuntimeException("User or flight not found");
+    }
+
+    public Booking bookGeneric(GenericBookingRequest request){
+        Optional<Users> usersOptional = userRepository.findById(request.getUserId());
+        if(usersOptional.isPresent()){
+            Users user = usersOptional.get();
+            Booking booking = new Booking();
+            booking.setType(request.getType());
+            booking.setBookingId(UUID.randomUUID().toString());
+            booking.setReferenceId(request.getReferenceId());
+            booking.setReferenceName(request.getReferenceName());
+            booking.setCollectionName(request.getCollectionName());
+            booking.setLocation(request.getLocation());
+            booking.setTravelDate(request.getTravelDate());
+            booking.setStartDate(request.getStartDate());
+            booking.setEndDate(request.getEndDate());
+            booking.setNotes(request.getNotes());
+            booking.setDate(LocalDateTime.now().toString());
+            booking.setQuantity(Math.max(1, request.getQuantity()));
+            booking.setTotalPrice(request.getPrice());
+            user.getBookings().add(booking);
+            userRepository.save(user);
+            return booking;
+        }
+        throw new RuntimeException("User not found");
     }
 
     public Users cancelBooking(String userId, String bookingId, String type, String reason){
