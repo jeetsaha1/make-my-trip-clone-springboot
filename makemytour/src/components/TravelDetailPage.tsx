@@ -64,6 +64,71 @@ const TravelDetailPage = ({
   const router = useRouter();
   const user = useSelector((state: any) => state.user.user);
 
+  const normalizeToken = (value: any) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const extractAnyId = (value: any): string => {
+    if (!value) return "";
+    if (typeof value === "string" || typeof value === "number") return String(value);
+    if (typeof value === "object") {
+      if (typeof value.$oid === "string") return value.$oid;
+      if (typeof value.$id === "string") return value.$id;
+      if (typeof value.oid === "string") return value.oid;
+      if (typeof value.id === "string") return value.id;
+      if (typeof value.toHexString === "function") {
+        try {
+          const hex = value.toHexString();
+          if (hex) return hex;
+        } catch (e) {}
+      }
+      if (typeof value.toString === "function") {
+        try {
+          const text = value.toString();
+          if (text && text !== "[object Object]") return text;
+        } catch (e) {}
+      }
+    }
+    return "";
+  };
+
+  const resolveByFields = (collection: any[], token: string) => {
+    const normalizedToken = normalizeToken(decodeURIComponent(token || ""));
+    if (!normalizedToken) return null;
+
+    return collection.find((entry: any) => {
+      const candidates = [
+        extractAnyId(entry.id),
+        extractAnyId(entry._id),
+        entry.slug,
+        entry.uuid,
+        entry.guid,
+        entry.itemId,
+        entry.name,
+        entry.title,
+        entry.hotelName,
+        entry.packageName,
+        entry.trainName,
+        entry.busName,
+        entry.cabType,
+        entry.currency,
+        entry.planName,
+        entry.location,
+        entry.destination,
+        entry.city,
+        entry.from && entry.to ? `${entry.from} ${entry.to}` : "",
+      ]
+        .filter(Boolean)
+        .map(normalizeToken);
+
+      return candidates.includes(normalizedToken) || candidates.some((candidate) => candidate.includes(normalizedToken) || normalizedToken.includes(candidate));
+    }) || null;
+  };
+
   useEffect(() => {
     if (!itemId) {
       setLoading(false);
@@ -77,34 +142,21 @@ const TravelDetailPage = ({
           const collection = await getCollection(collectionName);
           if (Array.isArray(collection)) {
             result = collection.find((entry: any) => {
-              const tryExtract = (obj: any) => {
-                if (!obj) return "";
-                if (typeof obj === "string" || typeof obj === "number") return String(obj);
-                if (obj.$oid) return String(obj.$oid);
-                if (obj.$id) return String(obj.$id);
-                if (typeof obj.toHexString === "function") {
-                  try { return String(obj.toHexString()); } catch (e) {}
-                }
-                if (typeof obj.toString === "function") {
-                  try {
-                    const s = obj.toString();
-                    if (s && s !== "[object Object]") return s;
-                  } catch (e) {}
-                }
-                return "";
-              };
-
               const ids = [
-                tryExtract(entry.id),
-                tryExtract(entry._id),
-                tryExtract(entry.slug),
-                tryExtract(entry.uuid),
-                tryExtract(entry.guid),
-                tryExtract(entry.itemId),
+                extractAnyId(entry.id),
+                extractAnyId(entry._id),
+                extractAnyId(entry.slug),
+                extractAnyId(entry.uuid),
+                extractAnyId(entry.guid),
+                extractAnyId(entry.itemId),
               ].filter(Boolean);
 
-              return ids.includes(String(itemId));
-            });
+              if (ids.includes(String(itemId))) {
+                return true;
+              }
+
+              return resolveByFields([entry], String(itemId)) !== null;
+            }) || resolveByFields(collection, String(itemId));
           }
         }
         setItem(result);

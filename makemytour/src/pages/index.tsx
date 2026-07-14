@@ -702,9 +702,34 @@ export default function Home() {
     return "";
   };
 
-  const handlebooknow = (item: any) => {
+  const getEntityRouteToken = (item: any) => {
     const id = getEntityId(item);
-    if (!id) {
+    if (id) return id;
+
+    const fields = [
+      item?.name,
+      item?.title,
+      item?.hotelName,
+      item?.packageName,
+      item?.trainName,
+      item?.busName,
+      item?.cabType,
+      item?.currency,
+      item?.planName,
+    ]
+      .filter((value) => typeof value === "string" && value.trim())
+      .map((value) => String(value).trim());
+
+    if (fields.length > 0) {
+      return encodeURIComponent(fields[0]);
+    }
+
+    return "";
+  };
+
+  const handlebooknow = (item: any) => {
+    const token = getEntityRouteToken(item);
+    if (!token) {
       alert("Unable to find an identifier for this item.");
       return;
     }
@@ -713,37 +738,37 @@ export default function Home() {
       const query: Record<string, string> = {};
       if (departureDate) query.departureDate = departureDate;
       if (returnDate) query.returnDate = returnDate;
-      router.push({ pathname: `/book-flight/${id}`, query });
+      router.push({ pathname: `/book-flight/${token}`, query });
     } else if (bookingtype === "hotels") {
       const query: Record<string, string> = {};
       if (checkin) query.checkin = checkin;
       if (checkout) query.checkout = checkout;
-      router.push({ pathname: `/book-hotel/${id}`, query });
+      router.push({ pathname: `/book-hotel/${token}`, query });
     } else if (bookingtype === "homestays") {
       const query: Record<string, string> = {};
       if (checkin) query.checkin = checkin;
       if (checkout) query.checkout = checkout;
-      router.push({ pathname: `/travel/homestays/${id}`, query });
+      router.push({ pathname: `/travel/homestays/${token}`, query });
     } else if (bookingtype === "holidays") {
       const query: Record<string, string> = {};
       if (holidayStartDate) query.startDate = holidayStartDate;
-      router.push({ pathname: `/travel/holidays/${id}`, query });
+      router.push({ pathname: `/travel/holidays/${token}`, query });
     } else if (bookingtype === "trains") {
       const query: Record<string, string> = {};
       if (trainDate) query.travelDate = trainDate;
-      router.push({ pathname: `/travel/trains/${id}`, query });
+      router.push({ pathname: `/travel/trains/${token}`, query });
     } else if (bookingtype === "buses") {
       const query: Record<string, string> = {};
       if (busDate) query.travelDate = busDate;
-      router.push({ pathname: `/travel/buses/${id}`, query });
+      router.push({ pathname: `/travel/buses/${token}`, query });
     } else if (bookingtype === "cabs") {
       const query: Record<string, string> = {};
       if (cabDate) query.travelDate = cabDate;
-      router.push({ pathname: `/travel/cabs/${id}`, query });
+      router.push({ pathname: `/travel/cabs/${token}`, query });
     } else if (bookingtype === "forex") {
-      router.push({ pathname: `/travel/forex/${id}` });
+      router.push({ pathname: `/travel/forex/${token}` });
     } else if (bookingtype === "insurance") {
-      router.push({ pathname: `/travel/insurance/${id}` });
+      router.push({ pathname: `/travel/insurance/${token}` });
     } else {
       alert(`Booking page not available for ${bookingtype} yet.`);
     }
@@ -1374,9 +1399,9 @@ export default function Home() {
                 </h2>
             {searchresults.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchresults.map((result) => (
+                {searchresults.map((result, index) => (
                   <div
-                    key={getEntityId(result)}
+                    key={getEntityRouteToken(result) || `${bookingtype}-${index}`}
                     className="bg-white rounded-lg shadow p-4 border border-gray-200"
                   >
                     {(bookingtype === "flights" || bookingtype === "trains" || bookingtype === "buses") && (
