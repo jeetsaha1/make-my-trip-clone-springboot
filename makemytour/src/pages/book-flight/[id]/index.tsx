@@ -62,6 +62,30 @@ const BookFlightPage = () => {
   const [open, setopem] = useState(false);
   const user = useSelector((state: any) => state.user.user);
   const dispatch = useDispatch();
+  const parseFlexibleDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const raw = String(dateString).trim();
+    const isoDate = new Date(raw);
+    if (!Number.isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+
+    const match = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T](\d{1,2})(?::(\d{2}))?)?$/);
+    if (match) {
+      const [, day, month, year, hour = "0", minute = "0"] = match;
+      const parsed = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    return null;
+  };
+
+  const formatDateValue = (dateString: string, options: Intl.DateTimeFormatOptions): string => {
+    const parsed = parseFlexibleDate(dateString);
+    if (!parsed) return dateString || "N/A";
+    return parsed.toLocaleString("en-US", options);
+  };
+
   const getDocumentId = (item: any) => {
     if (!item) return "";
     if (typeof item.id === "string" || typeof item.id === "number") {
@@ -180,14 +204,13 @@ const BookFlightPage = () => {
       hour: "2-digit",
       minute: "2-digit",
     };
-    const date = new Date(dateString);
-    return date.toLocaleString("en-US", options);
+    return formatDateValue(dateString, options);
   };
 
   const formatShortDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) {
-      return dateString;
+    const date = parseFlexibleDate(dateString);
+    if (!date) {
+      return dateString || "N/A";
     }
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -197,10 +220,9 @@ const BookFlightPage = () => {
   };
 
   const formatDateTime = (dateString: string): string => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) {
-      return dateString || "Invalid Date";
+    const date = parseFlexibleDate(dateString);
+    if (!date) {
+      return dateString || "N/A";
     }
     return date.toLocaleString("en-US", {
       year: "numeric",

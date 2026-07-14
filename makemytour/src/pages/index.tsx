@@ -1,4 +1,4 @@
-import { getCollection, searchFlights, searchHotels } from "@/api";
+import { getCollection, getCollectionNames, searchFlights, searchHotels } from "@/api";
 import Loader from "@/components/Loader";
 import { SearchSelect } from "@/components/SearchSelect";
 import SignupDialog from "@/components/SignupDialog";
@@ -347,9 +347,43 @@ export default function Home() {
     return [];
   };
 
+  const resolveCollectionName = async (candidates: string[]) => {
+    const existingCollections = await getCollectionNames();
+    const normalizedCollections = existingCollections.map((name: any) => String(name || "").trim().toLowerCase());
+
+    for (const candidate of candidates) {
+      const normalizedCandidate = candidate.trim().toLowerCase();
+      const exactIndex = normalizedCollections.indexOf(normalizedCandidate);
+      if (exactIndex >= 0) {
+        return String(existingCollections[exactIndex]);
+      }
+
+      const partialIndex = normalizedCollections.findIndex(
+        (name: string) => name === normalizedCandidate || name.includes(normalizedCandidate) || normalizedCandidate.includes(name)
+      );
+      if (partialIndex >= 0) {
+        return String(existingCollections[partialIndex]);
+      }
+    }
+
+    return "";
+  };
+
   const fetchCollectionData = async () => {
     try {
       setloading(true);
+      const [flightCollection, hotelCollection, homestayCollection, holidayCollection, trainCollection, busCollection, cabCollection, forexCollection, insuranceCollection] = await Promise.all([
+        resolveCollectionName(collectionMap.flights),
+        resolveCollectionName(collectionMap.hotels),
+        resolveCollectionName(collectionMap.homestays),
+        resolveCollectionName(collectionMap.holidays),
+        resolveCollectionName(collectionMap.trains),
+        resolveCollectionName(collectionMap.buses),
+        resolveCollectionName(collectionMap.cabs),
+        resolveCollectionName(collectionMap.forex),
+        resolveCollectionName(collectionMap.insurance),
+      ]);
+
       const [
         flightData,
         hotelData,
@@ -361,15 +395,15 @@ export default function Home() {
         forexData,
         insuranceData,
       ] = await Promise.all([
-        fetchCollectionByCandidates(collectionMap.flights),
-        fetchCollectionByCandidates(collectionMap.hotels),
-        fetchCollectionByCandidates(collectionMap.homestays),
-        fetchCollectionByCandidates(collectionMap.holidays),
-        fetchCollectionByCandidates(collectionMap.trains),
-        fetchCollectionByCandidates(collectionMap.buses),
-        fetchCollectionByCandidates(collectionMap.cabs),
-        fetchCollectionByCandidates(collectionMap.forex),
-        fetchCollectionByCandidates(collectionMap.insurance),
+        flightCollection ? getCollection(flightCollection) : fetchCollectionByCandidates(collectionMap.flights),
+        hotelCollection ? getCollection(hotelCollection) : fetchCollectionByCandidates(collectionMap.hotels),
+        homestayCollection ? getCollection(homestayCollection) : fetchCollectionByCandidates(collectionMap.homestays),
+        holidayCollection ? getCollection(holidayCollection) : fetchCollectionByCandidates(collectionMap.holidays),
+        trainCollection ? getCollection(trainCollection) : fetchCollectionByCandidates(collectionMap.trains),
+        busCollection ? getCollection(busCollection) : fetchCollectionByCandidates(collectionMap.buses),
+        cabCollection ? getCollection(cabCollection) : fetchCollectionByCandidates(collectionMap.cabs),
+        forexCollection ? getCollection(forexCollection) : fetchCollectionByCandidates(collectionMap.forex),
+        insuranceCollection ? getCollection(insuranceCollection) : fetchCollectionByCandidates(collectionMap.insurance),
       ]);
 
       setAllDataServer({
@@ -462,11 +496,26 @@ export default function Home() {
 
   const normalizeDate = (value: string) => {
     if (!value) return "";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return value;
+    const raw = String(value).trim();
+    const isoParsed = new Date(raw);
+    let parsed = Number.isNaN(isoParsed.getTime()) ? null : isoParsed;
+
+    if (!parsed) {
+      const match = raw.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:[ T](\d{1,2})(?::(\d{2}))?)?$/);
+      if (match) {
+        const [, day, month, year, hour = "0", minute = "0"] = match;
+        const candidate = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+        parsed = Number.isNaN(candidate.getTime()) ? null : candidate;
+      }
     }
-    return parsed.toISOString().slice(0, 10);
+
+    if (!parsed) {
+      return raw;
+    }
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const day = String(parsed.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const selectedTravelDate = () => {
@@ -571,7 +620,8 @@ export default function Home() {
 
   const formatDate = (dateString: string): string => {
     if (!dateString) return "Not specified";
-    const date = new Date(dateString);
+    const normalized = normalizeDate(dateString);
+    const date = new Date(normalized);
     if (Number.isNaN(date.getTime())) {
       return dateString;
     }
