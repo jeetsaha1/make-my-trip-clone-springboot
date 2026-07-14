@@ -455,7 +455,7 @@ const TravelDetailPage = ({
               )}
 
               {/* Flight-specific: live status + seat map */}
-              {entityType === 'flight' && (
+              {collectionName === 'flights' && (
                 <>
                   <section className="rounded-2xl border border-slate-200 bg-white p-6">
                     <LiveFlightStatus flightId={String(item?.id || item?._id || item?.flightId || '')} />

@@ -41,6 +41,8 @@ import { Users, Ticket } from "lucide-react";
 import SignupDialog from "@/components/SignupDialog";
 import Loader from "@/components/Loader";
 import ReviewSection from "@/components/ReviewSection";
+import LiveFlightStatus from "@/components/LiveFlightStatus";
+import SeatMap from "@/components/SeatMap";
 import { setUser } from "@/store";
 const BookFlightPage = () => {
   const router = useRouter();
@@ -278,6 +280,14 @@ const BookFlightPage = () => {
         </DialogTitle>
       </DialogHeader>
       <div className="grid gap-6 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+            <LiveFlightStatus flightId={String((flight as any)?.id || (flight as any)?._id || (flight as any)?.flightId || "")} />
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 md:col-span-2">
+            <SeatMap flightId={String((flight as any)?.id || (flight as any)?._id || (flight as any)?.flightId || "")} />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="flightName" className="flex items-center">
