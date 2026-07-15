@@ -454,16 +454,18 @@ const TravelDetailPage = ({
                 </section>
               )}
 
-              {/* Flight-specific: live status + seat map */}
+              {/* Flight-specific live status */}
               {collectionName === 'flights' && (
-                <>
-                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
-                    <LiveFlightStatus flightId={String(item?.id || item?._id || item?.flightId || '')} />
-                  </section>
-                  <section className="rounded-2xl border border-slate-200 bg-white p-6">
-                    <SeatMap flightId={String(item?.id || item?._id || item?.flightId || '')} />
-                  </section>
-                </>
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <LiveFlightStatus flightId={String(item?.id || item?._id || item?.flightId || '')} />
+                </section>
+              )}
+
+              {/* Flight and bus seat allocation */}
+              {(collectionName === 'flights' || collectionName === 'buses') && (
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <SeatMap flightId={String(item?.id || item?._id || item?.flightId || item?.busId || '')} />
+                </section>
               )}
 
               {/* Stay-specific: room selection and price history */}

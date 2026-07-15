@@ -4,11 +4,25 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://make-my-trip-clo
 
 export const getCollection = async (collection) => {
   try {
-    const url = `${BACKEND_URL}/collection/${collection}`;
-    console.log("API request", { method: "GET", url });
-    const res = await axios.get(url);
-    console.log("API response", { url, data: res.data });
-    return res.data;
+    const pageSize = 250;
+    let page = 0;
+    let allRows = [];
+
+    while (page < 200) {
+      const url = `${BACKEND_URL}/collection/${collection}?page=${page}&size=${pageSize}`;
+      console.log("API request", { method: "GET", url });
+      const res = await axios.get(url);
+      const rows = Array.isArray(res.data) ? res.data : [];
+      allRows = [...allRows, ...rows];
+
+      if (rows.length < pageSize) {
+        break;
+      }
+      page += 1;
+    }
+
+    console.log("API response", { collection, pagesFetched: page + 1, records: allRows.length });
+    return allRows;
   } catch (error) {
     console.error(`Error fetching collection ${collection}:`, {
       url: `${BACKEND_URL}/collection/${collection}`,

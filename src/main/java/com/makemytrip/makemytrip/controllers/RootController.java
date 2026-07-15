@@ -143,59 +143,76 @@ public class RootController {
     }
 
     @GetMapping("/collection/{name}")
-    public ResponseEntity<List<Document>> getCollection(@PathVariable String name) {
-        List<Document> documents = getCollectionData(name);
+    public ResponseEntity<List<Document>> getCollection(
+            @PathVariable String name,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "0") int size) {
+        List<Document> documents = getCollectionData(name, page, size);
         return ResponseEntity.ok(documents);
     }
 
     @GetMapping("/collection/{name}/{id}")
     public ResponseEntity<Document> getCollectionItemById(@PathVariable String name, @PathVariable String id) {
+        String collectionName = resolveMongoCollectionName(name);
+        if (collectionName != null) {
+            Query query;
+            if (ObjectId.isValid(id)) {
+                query = new Query(
+                        new Criteria().orOperator(
+                                Criteria.where("_id").is(new ObjectId(id)),
+                                Criteria.where("_id").is(id),
+                                Criteria.where("id").is(id)));
+            } else {
+                query = new Query(
+                        new Criteria().orOperator(
+                                Criteria.where("_id").is(id),
+                                Criteria.where("id").is(id)));
+            }
+
+            Document found = mongoTemplate.findOne(query, Document.class, collectionName);
+            if (found != null) {
+                return ResponseEntity.ok(found);
+            }
+        }
+
         List<Document> documents = getCollectionData(name);
         for (Document document : documents) {
             Object candidateId = document.get("id");
             if (candidateId == null) {
                 candidateId = document.get("_id");
             }
-            if (candidateId != null) {
-                // Direct string match
-                if (candidateId.toString().equals(id)) {
-                    return ResponseEntity.ok(document);
-                }
-
-                // If _id is an ObjectId, compare hex string
-                try {
-                    if (candidateId instanceof org.bson.types.ObjectId) {
-                        org.bson.types.ObjectId oid = (org.bson.types.ObjectId) candidateId;
-                        if (oid.toHexString().equals(id) || oid.toString().contains(id)) {
-                            return ResponseEntity.ok(document);
-                        }
-                    }
-                } catch (Exception e) {
-                    // ignore and continue
-                }
+            if (candidateId != null && candidateId.toString().equals(id)) {
+                return ResponseEntity.ok(document);
             }
         }
+
         return ResponseEntity.notFound().build();
     }
 
     private List<Document> getCollectionData(String name) {
+        return getCollectionData(name, 0, 0);
+    }
+
+    private List<Document> getCollectionData(String name, int page, int size) {
         if (name == null) {
             return new ArrayList<>();
         }
 
         String normalizedName = name.trim().toLowerCase();
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 0);
         // If a real collection exists in Mongo, prefer returning its documents.
         try {
             Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
             if (names.contains(normalizedName)) {
-                return mongoTemplate.findAll(Document.class, normalizedName);
+                return fetchCollectionDocuments(normalizedName, safePage, safeSize);
             }
             // try to find close match
             for (String n : names) {
                 String lower = n.toLowerCase();
                 if (lower.equals(normalizedName) || lower.endsWith(normalizedName) || lower.contains(normalizedName)) {
                     logger.info("Using existing collection '{}' for request '{}'", n, normalizedName);
-                    return mongoTemplate.findAll(Document.class, n);
+                    return fetchCollectionDocuments(n, safePage, safeSize);
                 }
             }
         } catch (Exception ex) {
@@ -322,7 +339,7 @@ public class RootController {
                     // Attempt to find a collection with the requested name or similar
                     Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
                     if (names.contains(normalizedName)) {
-                        return mongoTemplate.findAll(Document.class, normalizedName);
+                        return fetchCollectionDocuments(normalizedName, safePage, safeSize);
                     }
                     // try to find a close match (contains or endsWith)
                     String match = null;
@@ -335,7 +352,7 @@ public class RootController {
                     }
                     if (match != null) {
                         logger.info("Using collection '{}' for requested '{}'", match, normalizedName);
-                        return mongoTemplate.findAll(Document.class, match);
+                        return fetchCollectionDocuments(match, safePage, safeSize);
                     }
                     // fallback: return empty list rather than throwing
                     return new ArrayList<>();
@@ -344,6 +361,38 @@ public class RootController {
                     return new ArrayList<>();
                 }
         }
+    }
+
+    private String resolveMongoCollectionName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedName = name.trim().toLowerCase();
+        try {
+            Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
+            if (names.contains(normalizedName)) {
+                return normalizedName;
+            }
+            for (String n : names) {
+                String lower = n.toLowerCase();
+                if (lower.equals(normalizedName) || lower.endsWith(normalizedName) || lower.contains(normalizedName)) {
+                    return n;
+                }
+            }
+        } catch (Exception ex) {
+            logger.warn("Failed to resolve collection '{}': {}", normalizedName, ex.getMessage());
+        }
+        return null;
+    }
+
+    private List<Document> fetchCollectionDocuments(String collectionName, int page, int size) {
+        Query query = new Query();
+        if (size > 0) {
+            query.skip((long) page * size);
+            query.limit(size);
+        }
+        return mongoTemplate.find(query, Document.class, collectionName);
     }
 
     @GetMapping("/test")

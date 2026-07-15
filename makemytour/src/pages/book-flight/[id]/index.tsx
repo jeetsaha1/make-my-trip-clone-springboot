@@ -525,6 +525,10 @@ const BookFlightPage = () => {
               </div>
             </div>
 
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <LiveFlightStatus flightId={String((flight as any)?.id || (flight as any)?._id || (flight as any)?.flightId || "")} />
+            </div>
+
             {/* Cancellation Policy */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex justify-between items-center mb-6">
