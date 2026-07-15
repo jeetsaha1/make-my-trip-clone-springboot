@@ -44,7 +44,7 @@ export default function SeatMap({ flightId, onSelect }: { flightId: string; onSe
         <span className="rounded-full bg-amber-100 px-3 py-1">Business</span>
         <span className="rounded-full bg-slate-200 px-3 py-1">Unavailable</span>
       </div>
-      <div className="mt-4 overflow-auto">
+      <div className="mt-4 max-h-[420px] overflow-y-auto overflow-x-auto pr-1">
         <div className="inline-block min-w-full">
           {seats.map((row, rIdx) => (
             <div key={rIdx} className="flex items-center gap-2 mb-2">
