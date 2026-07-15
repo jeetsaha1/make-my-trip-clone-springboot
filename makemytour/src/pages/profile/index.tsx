@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { clearUser, setUser } from "@/store";
 import { cancelBooking, editprofile } from "@/api";
+import LiveFlightStatus from "@/components/LiveFlightStatus";
 const Profile = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.user.user);
@@ -43,6 +44,56 @@ const Profile = () => {
     "Personal reasons",
     "Other",
   ];
+  const refundPolicySteps = [
+    { label: "Pending", description: "Refund request is received and queued" },
+    { label: "Processed", description: "Payment provider has started the transfer" },
+    { label: "Completed", description: "Refund is reflected in the original payment method" },
+  ];
+
+  const parseBookingDate = (dateString: string) => {
+    const parsed = new Date(dateString);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const estimateRefundAmount = (booking: any) => {
+    const bookedAt = parseBookingDate(booking?.date);
+    const totalPrice = Number(booking?.totalPrice || 0);
+    if (!bookedAt || !totalPrice) {
+      return 0;
+    }
+
+    const hoursPassed = (Date.now() - bookedAt.getTime()) / (1000 * 60 * 60);
+    if (hoursPassed <= 24) {
+      return Math.round(totalPrice * 0.5);
+    }
+    if (hoursPassed <= 72) {
+      return Math.round(totalPrice * 0.25);
+    }
+    return 0;
+  };
+
+  const getRefundStageIndex = (booking: any) => {
+    const status = String(booking?.refundStatus || "Pending").toLowerCase();
+    if (status === "completed") return 2;
+    if (status === "processed") return 1;
+    return 0;
+  };
+
+  const getRefundStatusTone = (status: string | undefined) => {
+    const value = String(status || "Pending").toLowerCase();
+    if (value === "completed") return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    if (value === "processed") return "bg-blue-100 text-blue-700 border-blue-200";
+    return "bg-amber-100 text-amber-700 border-amber-200";
+  };
+
+  const trackedFlightIds: string[] = Array.from(
+    new Set<string>(
+      (user?.bookings || [])
+        .filter((booking: any) => String(booking?.type || "").toLowerCase() === "flight" && booking?.referenceId)
+        .map((booking: any) => String(booking.referenceId))
+        .filter(Boolean)
+    )
+  );
 
   React.useEffect(() => {
     if (user) {
@@ -236,6 +287,15 @@ const Profile = () => {
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
                   </button>
+                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4">
+                    <p className="text-sm font-semibold text-gray-800">Cancellation policy</p>
+                    <p className="mt-1 text-sm text-gray-600">Cancel directly from this dashboard and get an automatic refund estimate before you confirm.</p>
+                    <ul className="mt-3 space-y-2 text-sm text-gray-700">
+                      <li>50% refund if canceled within 24 hours of booking.</li>
+                      <li>25% refund if canceled within 72 hours of booking.</li>
+                      <li>Refund status moves from Pending to Processed to Completed.</li>
+                    </ul>
+                  </div>
                 </div>
               )}
             </div>
@@ -245,6 +305,11 @@ const Profile = () => {
           <div className="md:col-span-2">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
+              {trackedFlightIds.length > 0 && (
+                <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
+                  <LiveFlightStatus flightId={trackedFlightIds} />
+                </div>
+              )}
               <div className="space-y-6">
                 {user?.bookings?.length ? user.bookings.map((booking: any, index: any) => (
                   <div
@@ -303,11 +368,59 @@ const Profile = () => {
                       </div>
                     )}
                     {booking?.bookingStatus === "Cancelled" ? (
-                      <div className="rounded-lg bg-red-50 p-4 mb-4 text-sm text-red-700">
-                        <p className="font-semibold">Refund Status: {booking?.refundStatus}</p>
-                        <p>Amount: ₹ {booking?.refundAmount?.toLocaleString("en-IN")}</p>
-                        <p>Reason: {booking?.refundReason}</p>
-                        <p>Timeline: {booking?.refundTimeline}</p>
+                      <div className="rounded-lg bg-red-50 p-4 mb-4 text-sm text-red-700 space-y-4">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getRefundStatusTone(booking?.refundStatus)}`}>
+                            Refund {booking?.refundStatus || "Pending"}
+                          </span>
+                          <span className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700">
+                            {booking?.cancellationReason || booking?.refundReason || "Customer request"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                          <div className="rounded-lg bg-white p-3 shadow-sm">
+                            <p className="text-xs uppercase tracking-wide text-gray-500">Refund amount</p>
+                            <p className="mt-1 text-lg font-semibold text-gray-900">
+                              ₹ {(booking?.refundAmount || 0).toLocaleString("en-IN")}
+                            </p>
+                            {booking?.refundAmount < booking?.totalPrice ? (
+                              <p className="text-xs text-gray-500">Partial refund applied based on the policy window.</p>
+                            ) : (
+                              <p className="text-xs text-gray-500">Full eligible refund has been calculated.</p>
+                            )}
+                          </div>
+                          <div className="rounded-lg bg-white p-3 shadow-sm">
+                            <p className="text-xs uppercase tracking-wide text-gray-500">Expected timeline</p>
+                            <p className="mt-1 text-lg font-semibold text-gray-900">{booking?.refundTimeline || "3-5 business days"}</p>
+                            <p className="text-xs text-gray-500">Refunds usually follow bank/payment gateway processing windows.</p>
+                          </div>
+                          <div className="rounded-lg bg-white p-3 shadow-sm">
+                            <p className="text-xs uppercase tracking-wide text-gray-500">Submitted on</p>
+                            <p className="mt-1 text-lg font-semibold text-gray-900">{booking?.cancellationDate ? formatDate(booking.cancellationDate) : "Recently"}</p>
+                            <p className="text-xs text-gray-500">Reason recorded for trend analysis.</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3 rounded-lg bg-white p-4 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-gray-900">Refund status tracker</p>
+                            <p className="text-xs text-gray-500">Live updates will appear here</p>
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-3">
+                            {refundPolicySteps.map((step, index) => {
+                              const stageIndex = getRefundStageIndex(booking);
+                              const isActive = index <= stageIndex;
+                              return (
+                                <div key={step.label} className={`rounded-xl border p-3 ${isActive ? "border-red-200 bg-red-50" : "border-gray-200 bg-gray-50"}`}>
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-semibold text-gray-900">{step.label}</p>
+                                    <span className={`h-2.5 w-2.5 rounded-full ${isActive ? "bg-red-500" : "bg-gray-300"}`} />
+                                  </div>
+                                  <p className="mt-2 text-xs text-gray-600">{step.description}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     ) : null}
                     {booking?.bookingStatus !== "Cancelled" ? (
@@ -328,6 +441,11 @@ const Profile = () => {
                                 </option>
                               ))}
                             </select>
+                            <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                              <p className="font-semibold">Refund preview</p>
+                              <p className="mt-1">Estimated refund: ₹ {estimateRefundAmount(booking).toLocaleString("en-IN")}</p>
+                              <p>Policy: 50% within 24 hours, 25% within 72 hours, otherwise not eligible.</p>
+                            </div>
                             <div className="flex gap-3">
                               <button
                                 disabled={cancelLoading}

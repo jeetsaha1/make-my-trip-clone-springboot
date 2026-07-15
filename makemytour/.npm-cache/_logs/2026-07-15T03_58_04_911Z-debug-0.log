@@ -7,8 +7,8 @@
 6 silly config load:file:C:\Users\Windows\AppData\Roaming\npm\etc\npmrc
 7 verbose title npm run build
 8 verbose argv "run" "build"
-9 verbose logfile logs-max:10 dir:D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-07-07T14_07_20_850Z-
-10 verbose logfile D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-07-07T14_07_20_850Z-debug-0.log
+9 verbose logfile logs-max:10 dir:D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-07-15T03_58_04_911Z-
+10 verbose logfile D:\VSCODE\make-my-trip-clone-springboot\makemytour\.npm-cache\_logs\2026-07-15T03_58_04_911Z-debug-0.log
 11 silly logfile start cleaning logs, removing 1 files
 12 silly logfile done cleaning log files
 13 verbose cwd D:\VSCODE\make-my-trip-clone-springboot\makemytour

@@ -24,6 +24,14 @@ const sortOptions = [
   { value: "highestRated", label: "Highest Rated" },
 ];
 
+const flagReasons = [
+  "Offensive language",
+  "Spam or misleading",
+  "Irrelevant content",
+  "Fake review",
+  "Other",
+];
+
 const initialSummary: ReviewSummary = {
   averageRating: 0,
   reviewCount: 0,
@@ -50,6 +58,7 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
+  const [flagReasonsByReview, setFlagReasonsByReview] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const loadReviews = async (sort = sortOrder, stars?: number) => {
@@ -148,8 +157,9 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
     if (!user) {
       return;
     }
+    const reason = flagReasonsByReview[reviewId] || "Inappropriate content";
     try {
-      await flagReview(reviewId, user.id || user._id || "anonymous", "Inappropriate content");
+      await flagReview(reviewId, user.id || user._id || "anonymous", reason);
       loadReviews(sortOrder, typeof filterStars === "number" ? filterStars : undefined);
     } catch (error) {
       console.error(error);
@@ -205,7 +215,7 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[240px_1fr] gap-6 mb-8">
-        <div className="bg-slate-50 rounded-xl p-4">
+            <div className="bg-slate-50 rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="text-4xl font-bold text-blue-600">{summary.averageRating.toFixed(1)}</div>
             <div>
@@ -326,10 +336,23 @@ const ReviewSection = ({ entityType, entityId, user }: ReviewSectionProps) => {
                 </div>
               )}
               <div className="flex flex-wrap gap-3 items-center text-sm text-gray-500">
+                <select
+                  className="rounded-full border border-gray-300 bg-white px-3 py-1 text-sm"
+                  value={flagReasonsByReview[review.id || review._id] || ""}
+                  onChange={(e) => setFlagReasonsByReview((prev) => ({ ...prev, [review.id || review._id]: e.target.value }))}
+                >
+                  <option value="">Select flag reason</option>
+                  {flagReasons.map((reason) => (
+                    <option key={reason} value={reason}>
+                      {reason}
+                    </option>
+                  ))}
+                </select>
                 <button type="button" onClick={() => handleFlag(review.id || review._id)} className="inline-flex items-center gap-1 rounded-full border border-gray-300 px-3 py-1 text-gray-600 hover:bg-gray-100">
-                  <Flag className="w-4 h-4" /> Flag
+                  <Flag className="w-4 h-4" /> Flag for moderation
                 </button>
                 {review.flagCount > 0 && <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">Flagged by users</span>}
+                {review.status && review.status !== 'approved' && <span className="rounded-full bg-rose-100 px-3 py-1 text-rose-700">{review.status}</span>}
               </div>
               <div className="mt-6 border-t border-gray-100 pt-4 space-y-4">
                 {review.replies?.map((reply: any) => (
