@@ -219,9 +219,8 @@ public class RootController {
             logger.warn("Error checking collection names: {}", ex.getMessage());
         }
 
-        switch (normalizedName) {
-            case "homestays":
-                return List.of(
+        return switch (normalizedName) {
+            case "homestays" -> List.of(
                         new Document("id", "hs-1")
                                 .append("hotelName", "Beachside Homestay")
                                 .append("location", "Goa")
@@ -236,8 +235,7 @@ public class RootController {
                                 .append("availableRooms", 6)
                                 .append("amenities", "Bonfire, Mountain View, Parking")
                                 .append("description", "Wake up to panoramic views and a peaceful mountain retreat."));
-            case "holidays":
-                return List.of(
+            case "holidays" -> List.of(
                         new Document("id", "hd-1")
                                 .append("packageName", "Goa Escape")
                                 .append("destination", "Goa")
@@ -254,8 +252,7 @@ public class RootController {
                                 .append("description", "Explore the mountains with a premium holiday itinerary.")
                                 .append("highlights", "Cable car ride, local food tour, adventure sports")
                                 .append("inclusions", "Stay, meals, guided activities"));
-            case "trains":
-                return List.of(
+                    case "trains" -> List.of(
                         new Document("id", "tr-1")
                                 .append("trainName", "Rajdhani Express")
                                 .append("from", "Delhi")
@@ -274,8 +271,7 @@ public class RootController {
                                 .append("price", 1450)
                                 .append("availableSeats", 18)
                                 .append("description", "Fast, comfortable travel for business and leisure."));
-            case "buses":
-                return List.of(
+                    case "buses" -> List.of(
                         new Document("id", "bs-1")
                                 .append("busName", "Volvo Sleeper")
                                 .append("from", "Delhi")
@@ -292,8 +288,7 @@ public class RootController {
                                 .append("price", 650)
                                 .append("availableSeats", 20)
                                 .append("description", "Comfortable air-conditioned buses for day travel."));
-            case "cabs":
-                return List.of(
+                    case "cabs" -> List.of(
                         new Document("id", "cb-1")
                                 .append("cabType", "Outstation Cab")
                                 .append("city", "Delhi")
@@ -310,8 +305,7 @@ public class RootController {
                                 .append("pricePerKm", 11)
                                 .append("available", true)
                                 .append("description", "Hassle-free airport pickups and drop-offs."));
-            case "forex":
-                return List.of(
+            case "forex" -> List.of(
                         new Document("id", "fx-1")
                                 .append("currency", "USD")
                                 .append("buyRate", 84.50)
@@ -322,8 +316,7 @@ public class RootController {
                                 .append("buyRate", 92.10)
                                 .append("sellRate", 91.30)
                                 .append("description", "Secure euro exchange for your upcoming travels."));
-            case "insurance":
-                return List.of(
+            case "insurance" -> List.of(
                         new Document("id", "in-1")
                                 .append("planName", "Travel Secure")
                                 .append("coverage", "₹10 Lakhs")
@@ -334,12 +327,12 @@ public class RootController {
                                 .append("coverage", "₹25 Lakhs")
                                 .append("premium", 2599)
                                 .append("description", "Annual protection for frequent travelers and family trips."));
-            default:
+            default -> {
                 try {
                     // Attempt to find a collection with the requested name or similar
                     Set<String> names = new HashSet<>(mongoTemplate.getCollectionNames());
                     if (names.contains(normalizedName)) {
-                        return fetchCollectionDocuments(normalizedName, safePage, safeSize);
+                        yield fetchCollectionDocuments(normalizedName, safePage, safeSize);
                     }
                     // try to find a close match (contains or endsWith)
                     String match = null;
@@ -352,15 +345,15 @@ public class RootController {
                     }
                     if (match != null) {
                         logger.info("Using collection '{}' for requested '{}'", match, normalizedName);
-                        return fetchCollectionDocuments(match, safePage, safeSize);
+                        yield fetchCollectionDocuments(match, safePage, safeSize);
                     }
-                    // fallback: return empty list rather than throwing
-                    return new ArrayList<>();
+                    yield new ArrayList<>();
                 } catch (Exception ex) {
                     logger.warn("Failed to fetch collection {}: {}", normalizedName, ex.getMessage());
-                    return new ArrayList<>();
+                    yield new ArrayList<>();
                 }
-        }
+            }
+        };
     }
 
     private String resolveMongoCollectionName(String name) {

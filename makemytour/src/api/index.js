@@ -8,14 +8,14 @@ export const getCollection = async (collection) => {
     let page = 0;
     let allRows = [];
 
-    while (page < 200) {
+    while (true) {
       const url = `${BACKEND_URL}/collection/${collection}?page=${page}&size=${pageSize}`;
       console.log("API request", { method: "GET", url });
       const res = await axios.get(url);
       const rows = Array.isArray(res.data) ? res.data : [];
       allRows = [...allRows, ...rows];
 
-      if (rows.length < pageSize) {
+      if (rows.length === 0 || rows.length < pageSize) {
         break;
       }
       page += 1;
